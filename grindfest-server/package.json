@@ -1,0 +1,32 @@
+{
+  "name": "grindfest-server",
+  "version": "0.0.0",
+  "private": true,
+  "babel": {
+    "presets": [
+      "flow"
+    ],
+    "plugins": [
+      "transform-class-properties",
+      "transform-es2015-modules-commonjs"
+    ]
+  },
+  "scripts": {
+    "build": "babel src/ --out-dir dist/ --watch --source-maps",
+    "start": "concurrently --raw \"npm run build\" \"nodemon --experimental-modules dist/app.js\""
+  },
+  "dependencies": {
+    "websocket": "^1.0.26"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
+    "babel-preset-flow": "^6.23.0",
+    "concurrently": "^3.5.1",
+    "flow-bin": "^0.74.0",
+    "flow-remove-types": "^1.2.3",
+    "nodemon": "^1.17.5",
+    "renamer": "^0.7.0"
+  }
+}
