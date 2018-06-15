@@ -1,0 +1,81 @@
+{
+  "frameWidth": 128,
+  "frameHeight": 192,
+
+  "imageWidth": 128,
+  "imageHeight": 192,
+  "imageAssetName": "sprites/hero.png",
+
+  "defaultAction": "idle",
+
+  "actions": [{
+    "name": "idle",
+    "wrapMode": 1,
+    "priority": 0,
+    "animations": [{
+      "direction": 0,
+      "frames": [0]
+    },{
+      "direction": 1,
+      "frames": [0]
+    },{
+      "direction": 2,
+      "frames": [0]
+    },{
+      "direction": 3,
+      "frames": [0]
+    }]
+  },{
+    "name": "walk",
+    "wrapMode": 1,
+    "priority": 1,
+    "animations": [{
+      "direction": 0,
+      "frames": [0]
+    },{
+      "direction": 1,
+      "frames": [0]
+    },{
+      "direction": 2,
+      "frames": [0]
+    },{
+      "direction": 3,
+      "frames": [0]
+    }]
+  },{
+    "name": "spellcast",
+    "wrapMode": 0,
+    "priority": 2,
+    "animations": [{
+      "direction": 0,
+      "frames": [0]
+    },{
+      "direction": 1,
+      "frames": [0]
+    },{
+      "direction": 2,
+      "frames": [0]
+    },{
+      "direction": 3,
+      "frames": [0]
+    }]
+  },{
+    "name": "dying",
+    "wrapMode": 2,
+    "priority": 3,
+    "height": -128,
+    "animations": [{
+      "direction": 0,
+      "frames": [0]
+    },{
+      "direction": 1,
+      "frames": [0]
+    },{
+      "direction": 2,
+      "frames": [0]
+    },{
+      "direction": 3,
+      "frames": [0]
+    }]
+  }]
+}
