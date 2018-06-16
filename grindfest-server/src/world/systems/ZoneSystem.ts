@@ -15,6 +15,7 @@ import Visual from "../components/Visual";
 import NetworkManager from "../../NetworkManager";
 import Client from "../../Client";
 import LoginManager from "../../LoginManager";
+import GameObjectDatabase from "../GameObjectDatabase";
 
 
 export default class ZoneSystem extends GameSystem {
@@ -55,34 +56,12 @@ export default class ZoneSystem extends GameSystem {
     }
 
 
-    //TODO: this should be in world manager, but i have to rewrite from code to data first, because world manager doesnt know any components by itself
-    static createGameObject(templateName: string, definition: any) {
-
-        //TODO: add loading templates from files
-
-        if (templateName === "hero") {
-
-            //let heroDef: HeroDefinition = definition;
-
-            let go = new GameObject();
-            go.components.push(new Transform(definition.x, definition.y));
-            go.components.push(new NetState(definition.client));
-            go.components.push(new Zoned(definition.actorId, definition.zoneId));
-            go.components.push(new Visual("hero"));
-
-            return go;
-
-        } else {
-            throw `Unknown template: ${templateName}`;
-        }
-
-    }
 
     onGameReady(client: Client, message: ClientGameReady) {
 
         // something has to trasnslate herodefinition to game objects and components
         let heroDef = client.heroes[0];
-        let goHero = ZoneSystem.createGameObject("hero", {...heroDef, client: client});
+        let goHero = GameObjectDatabase.createGameObject("hero", {...heroDef, client: client});
         client.hero = goHero;
 
 

@@ -1,8 +1,10 @@
+import {Vector2} from "../Math";
+
 export enum Direction  {
-    South = 0,
-    West = 1,
-    North = 2,
-    East = 3,
+    Up = 0,
+    Right = 1,
+    Down = 2,
+    Left = 3,
 }
 export enum MessageId {
     CMSG_LOGIN_REQUEST = 1,
@@ -21,14 +23,16 @@ export enum LoginStatus  {
     AlreadyLoggedIn = 3,
 }
 export interface ServerActorMove extends Message {
-    id: MessageId.SMSG_ACTOR_MOVE
-    actorId: number
-    direction: number
+    id: MessageId.SMSG_ACTOR_MOVE;
+    actorId: number;
+    movement: Vector2;
+    position: Vector2;
 }
 
 export interface ClientMovementRequest extends Message {
-    id: MessageId.CMSG_MOVE_REQUEST
-    direction: number
+    id: MessageId.CMSG_MOVE_REQUEST;
+    movement: Vector2;
+    expectedPosition: Vector2;
 }
 
 export interface ClientGameReady extends Message {

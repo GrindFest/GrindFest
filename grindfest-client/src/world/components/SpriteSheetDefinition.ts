@@ -28,7 +28,6 @@ export interface SpriteSheetAction {
     priority: number;
     animations: SpriteSheetAnimation[];
 
-    framesCount: number;
     duration: number;
     animationsByDirection: Map<Direction, SpriteSheetAnimation>;
 

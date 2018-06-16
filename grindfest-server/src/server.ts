@@ -3,6 +3,7 @@ import LoginManager from "./LoginManager";
 import ZoneSystem from "./world/systems/ZoneSystem";
 import World from "./infrastructure/world/World";
 import WorldManager from "./infrastructure/world/WorldManager";
+import MobileSystem from "./world/systems/MobileSystem";
 
 console.log("GrindFest Server starting...");
 
@@ -12,6 +13,7 @@ LoginManager.initialize();
 
 let world =  new World();
 world.gameSystems.push(new ZoneSystem());
+world.gameSystems.push(new MobileSystem());
 
 WorldManager.worlds.push(world);
 

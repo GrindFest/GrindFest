@@ -8,7 +8,7 @@ export default class Transform extends Component {
     scale: Vector2 = {x: 1, y: 1};
 
     localPosition: Vector2 = { x: 0, y: 0 };
-    direction: Direction = Direction.South;
+    direction: Direction = Direction.Down; //TODO: shouldn't this be somewhere else?
 
     parent: Transform = null;
 

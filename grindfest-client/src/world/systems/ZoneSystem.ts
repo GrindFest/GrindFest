@@ -2,7 +2,7 @@ import GameSystem from "../../infrastructure/world/GameSystem";
 import {
     MessageId,
     ServerActorEnterZone,
-    ServerActorLeaveZone,
+    ServerActorLeaveZone, ServerActorMove,
     ServerEnterZone
 } from "../../infrastructure/network/Messages";
 import Zoned from "../components/Zoned";
@@ -13,24 +13,37 @@ import Camera from "../components/Camera";
 import Transform from "../components/Transform";
 import GameObject from "../../infrastructure/world/GameObject";
 import WorldManager from "../../infrastructure/world/WorldManager";
-import Controllable from "../components/Controllable";
+import Controllable, {Actions} from "../components/Controllable";
 import Mobile from "../components/Mobile";
 
 export default class ZoneSystem extends GameSystem {
 
     private zoneds: Zoned[] = [];
 
+    private mobiles: {c1: Zoned, c2: Mobile}[] = [];
+
     //TODO: should i have multiple zones on client? for loading adjacent zones and seamless world?
     zoneId: number;
     myActorId: number;
 
-    findGameObjectByActorId(actorId: number) {
-        return this.zoneds.find( (zoned) => zoned.actorId == actorId).gameObject;
+
+    constructor() {
+        super();
+
+        this.registerNodeJunction(this.zoneds, Zoned);
+        this.registerNodeJunction2(this.mobiles, Zoned, Mobile);
+
+        NetworkManager.registerHandler(MessageId.SMSG_ACTOR_ENTER_ZONE, this.onActorEnterZone.bind(this));
+        NetworkManager.registerHandler(MessageId.SMSG_ACTOR_LEAVE_ZONE, this.onActorLeaveZone.bind(this));
+        NetworkManager.registerHandler(MessageId.SMSG_ENTER_ZONE, this.onEnterZone.bind(this));
+
     }
 
+
+
     onActorLeaveZone(message: ServerActorLeaveZone) {
-        let actor = this.findGameObjectByActorId(message.actorId);
-        this.world.gameObjects.remove(actor);
+        let zoned = this.zoneds.find( (zoned) => zoned.actorId == message.actorId);
+        this.world.gameObjects.remove(zoned.gameObject);
     }
 
     onActorEnterZone(message: ServerActorEnterZone) {
@@ -77,12 +90,4 @@ export default class ZoneSystem extends GameSystem {
 
     }
 
-    constructor() {
-        super();
-        this.registerNodeJunction(this.zoneds, Zoned);
-
-        NetworkManager.registerHandler(MessageId.SMSG_ACTOR_ENTER_ZONE, this.onActorEnterZone.bind(this));
-        NetworkManager.registerHandler(MessageId.SMSG_ACTOR_LEAVE_ZONE, this.onActorLeaveZone.bind(this));
-        NetworkManager.registerHandler(MessageId.SMSG_ENTER_ZONE, this.onEnterZone.bind(this));
-    }
 }

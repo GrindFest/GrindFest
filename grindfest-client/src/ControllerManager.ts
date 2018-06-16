@@ -41,8 +41,8 @@ export default class ControllerManager {
         }
 
         player1Stick2Direction = Math.atan2(
-            (ControllerManager.captured.clientWidth / 2) - ControllerManager.mouseX,
-            (ControllerManager.captured.clientHeight / 2) - ControllerManager.mouseY);
+            (ControllerManager.captured.clientHeight / 2) - ControllerManager.mouseY,
+            (ControllerManager.captured.clientWidth / 2) - ControllerManager.mouseX);
 
 
         // if (action.keys == WSAD) {

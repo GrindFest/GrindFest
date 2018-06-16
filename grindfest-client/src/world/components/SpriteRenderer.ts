@@ -49,7 +49,7 @@ export default class SpriteRenderer extends Component{
 
 
 
-    update(delta: number) {
+    update(delta: number, direction: Direction) {
 
         let action = this.currentAction;
 
@@ -60,14 +60,16 @@ export default class SpriteRenderer extends Component{
             this.currentFrame++;
         }
 
-        if (this.currentFrame >= action.framesCount) { // Animation eneded
+        let animation = action.animationsByDirection.get(direction);
+
+        if (this.currentFrame >= animation.frames.length) { // Animation eneded
 
             if (this.currentAction.wrapMode === WrapMode.Once) {
                 this.setAction(this.asset.defaultAction, true);
             } else if (this.currentAction.wrapMode === WrapMode.Loop) {
                 this.currentFrame = 0;
             } else if (this.currentAction.wrapMode === WrapMode.ClampForever) {
-                this.currentFrame = action.framesCount - 1;
+                this.currentFrame =  animation.frames.length - 1;
             }
 
         }

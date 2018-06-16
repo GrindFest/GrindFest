@@ -23,6 +23,8 @@ export default class NetworkManager {
 
         if (handlers != null) {
             handlers.emit2(client, message);
+        } else {
+            console.error("Unknown message " + MessageId[message.id]);
         }
 
         //

@@ -37,7 +37,7 @@ export default class RenderingSystem extends GameSystem {
         for (let sprite of this.sprites) {
             if (sprite.c1.asset == null) continue;
 
-            sprite.c1.update(delta);
+            sprite.c1.update(delta, sprite.c2.direction);
         }
 
         this.sprites.sort((a, b) => {

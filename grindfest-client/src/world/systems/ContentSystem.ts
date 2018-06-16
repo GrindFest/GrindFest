@@ -143,18 +143,6 @@ export default class ContentSystem extends GameSystem {
 
             spriteSheet.actionsByName.set(action.name, action);
 
-            for (let animation of action.animations) {
-                if (action.framesCount == null) {
-                    action.framesCount = animation.frames.length;
-                } else {
-                    if (action.framesCount !== animation.frames.length) {
-                        throw "Invalid animation";
-                    }
-                }
-            }
-
-
-            action.duration = action.framesCount / framesPerSecond;
 
             if (typeof action.height === "undefined") {
                 action.height = 0;

@@ -5,46 +5,18 @@ import Controllable, {Actions} from "../components/Controllable";
 import Zoned from "../components/Zoned";
 import ControllerManager from "../../ControllerManager";
 import Mobile from "../components/Mobile";
+import Transform from "../components/Transform";
 
 
 export default class ControlsSystem extends GameSystem {
 
-    mobiles: {c1: Controllable, c2: Mobile}[] = []; //TODO: this should be [Controllable, Mobile]
-    zoneds: {c1: Controllable, c2: Zoned}[] = []; //TODO: this should be something like otherControllables: Node<Controllable, Zoned>
-
-    queuedIntents: any[] = [];
+    mobiles: {c1: Controllable, c2: Mobile, c3: Transform}[] = [];
 
     constructor() {
         super();
-        this.registerNodeJunction2(this.mobiles, Controllable, Mobile);
-        this.registerNodeJunction2(this.zoneds, Controllable, Zoned);
-
-        NetworkManager.registerHandler(MessageId.SMSG_ACTOR_MOVE, this.onActorMove);
+        this.registerNodeJunction3(this.mobiles, Controllable, Mobile, Transform);
     }
 
-
-    onActorMove(message: ServerActorMove) {
-        return;
-        for (let controllableAndZoned of this.zoneds) {
-            let zoned = controllableAndZoned.c2;
-            if (message.actorId == zoned.actorId) {
-                let controllable = controllableAndZoned.c1;
-                this.queuedIntents.push({
-                    actorId: message.actorId,
-                    action: Actions.Move,
-
-                    direction: message.direction,
-                    speed: 1.0
-                });
-                break;
-            }
-        }
-
-
-    }
-
-
-    // everyone from server is controlled by interpolation and not by actions like move
 
     update() {
         let intent;
@@ -65,24 +37,30 @@ export default class ControlsSystem extends GameSystem {
 
 
             let mobile = controllableAndMobile.c2;
+
+            let newVelocity;
             if (ControllerManager.controller1Stick1Direction != null) {
-                let newVelocity = {
-                    x: Math.cos(ControllerManager.controller1Stick1Direction),
-                    y: Math.sin(ControllerManager.controller1Stick1Direction)
+                newVelocity = {
+                    x: Math.cos(ControllerManager.controller1Stick1Direction) * mobile.speed,
+                    y: Math.sin(ControllerManager.controller1Stick1Direction) * mobile.speed
                 };
-                if (mobile.velocity.x != newVelocity.x || mobile.velocity.y != newVelocity.y) {
-
-                    NetworkManager.send({
-                        id: MessageId.CMSG_MOVE_REQUEST,
-                        direction: ControllerManager.controller1Stick1Direction
-                    } as ClientMovementRequest);
-
-                    mobile.velocity.x = newVelocity.x;
-                    mobile.velocity.y = newVelocity.y;
-                }
             } else {
-                mobile.velocity.x = 0;
-                mobile.velocity.y = 0;
+                newVelocity = {x: 0, y: 0}
+            }
+
+
+            if (mobile.velocity.x != newVelocity.x || mobile.velocity.y != newVelocity.y) {
+
+                let transform = controllableAndMobile.c3;
+
+                NetworkManager.send({
+                    id: MessageId.CMSG_MOVE_REQUEST,
+                    movement: newVelocity,
+                    expectedPosition: transform.localPosition
+                } as ClientMovementRequest);
+
+                mobile.velocity.x = newVelocity.x;
+                mobile.velocity.y = newVelocity.y;
             }
 
         }
