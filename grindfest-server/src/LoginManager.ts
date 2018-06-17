@@ -47,8 +47,8 @@ export default class LoginManager {
             let hero: HeroDefinition = {
                 name: "Guest " + Math.round(Math.random() * 100),
                 zoneId: 1,
-                x: Math.round(Math.random() * 10) * 64,
-                y: Math.round(Math.random() * 10) * 64,
+                x: Math.round(Math.random() * 2) * 64,
+                y: Math.round(Math.random() * 2) * 64,
                 kills:0,
                 deaths:0,
             };

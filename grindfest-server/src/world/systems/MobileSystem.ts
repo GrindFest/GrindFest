@@ -60,6 +60,5 @@ export default class MobileSystem extends GameSystem {
         transform.x = message.expectedPosition.x;
         transform.y = message.expectedPosition.y;
 
-        //TODO: notify everyone that this mobile is moving, but not here
     }
 }

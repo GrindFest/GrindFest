@@ -18,8 +18,8 @@ export default class GameScreen extends Component {
 
     componentDidMount() {
 
-        let game = new Game();
 
+        let game = new Game();
         game.initialize();
 
 

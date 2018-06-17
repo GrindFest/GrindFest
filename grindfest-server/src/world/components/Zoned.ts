@@ -9,9 +9,8 @@ export default class Zoned extends Component {
     public zone: Zone;
     public zoneId: number;
 
-    constructor(actorId, zoneId) {
+    constructor(zoneId) {
         super();
-        this.actorId = actorId;
         this.zoneId = zoneId;
     }
 

@@ -20,6 +20,8 @@ export default class RenderingSystem extends GameSystem {
 
         this.context = context;
 
+        this.context.imageSmoothingEnabled = false;
+
         // We register all components that we need, and they will be added to these arrays, as gameobjects are added to world
         this.registerNodeJunction2(this.tileMaps, TileMapRenderer, Transform);
         this.registerNodeJunction2(this.sprites, SpriteRenderer, Transform);

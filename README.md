@@ -3,9 +3,10 @@
 ### Gameplay
  * Enemies
  * Attacking/Skills
+ * Collisions
+ * Fixing lag
  * floating damage
  * skill ui
- * Fixing lag
  * Map transitions
  * Chat
  * Controller support
@@ -15,7 +16,7 @@
 ### Graphical enhancments
  * Lightning from fire
  * water (stepping in water sounds ripples)
- * Water reflections (sworcery, that castle building 2d game)
+ * Water reflections (sworcery, that castle building 2d game - Kingdom)
  * Crysrtal distortion effect
  * Seamless map transitions
 
@@ -326,6 +327,7 @@ you can summon one monster card you have for help?
 
 
 ### monsters
+everyone will always be attacking or moving - no need for idle animation
   guy with shield
   guy with long range weapon
   
@@ -402,6 +404,21 @@ There are missing folders, Game.js and Network folder should be on a same level
 
 is it zone -> world
 or is it world -> zone
+
+it might be zone -> world, and thinks like zoned, netstate, camera, controlls, rendering? shouldnt be components because they don't belong to world
+
+problem is that it shouldnt be spriterenderer, it should be Visual, and rendering system should get this
+
+what is camera then? camera is system, that targets hero
+what if i want to cameras? its rendering system...camera is object inside rendering system
+
+nodes can have storage for system data
+
+
+what would hold actor id... actor component? that means he is an actor on server, thats same as netstate, isnt it?
+
+
+zones will be separated, no fluid transitioning between zones
 
 
 GameObject vs Component

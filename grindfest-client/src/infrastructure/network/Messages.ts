@@ -57,6 +57,8 @@ export interface ServerActorEnterZone extends Message {
     actorId: number;
     x: number;
     y: number;
+    spriteAsset: string;
+    //TODO: add velocity
 }
 
 export interface ServerActorMove extends Message {

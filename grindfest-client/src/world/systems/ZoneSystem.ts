@@ -51,10 +51,12 @@ export default class ZoneSystem extends GameSystem {
 
         let world = this.world;
 
+        //TODO: call gameobjectdatabase.createobject and use data from message as definition
         let actor = new GameObject();
         actor.components.push(new Zoned(message.actorId));
         actor.components.push(new Transform(message.x, message.y));
-        actor.components.push(new SpriteRenderer("/sprites/hero.json"));
+
+        actor.components.push(new SpriteRenderer(message.spriteAsset)); //TODO: this could have the asset loaded, the problem is that this is incorrect place to create the object, it should be from gameobjectadatabse that has access to content, so the contentsystem can be contentmanager afterall
         actor.components.push(new Mobile());
         if (message.actorId == this.myActorId) {
             actor.components.push(new Controllable());
@@ -67,7 +69,7 @@ export default class ZoneSystem extends GameSystem {
 
             let camera = new GameObject();
             camera.components.push(new Transform(0, 0, actor.components.get(Transform)));
-            camera.components.push(new Camera());
+            camera.components.push(new Camera()); //TODO: camera probably shoundlt be a component as its not a behavior of something in the game domain its just a way rendering works. but how is netstate different?
 
             world.gameObjects.push(camera);
         }

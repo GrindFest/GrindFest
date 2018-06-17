@@ -6,8 +6,7 @@ export interface SpriteSheetDefinition {
     frameWidth: number;
     frameHeight: number;
 
-    imageWidth: number;
-    imageHeight: number;
+    scale: number
 
     defaultAction: string;
 

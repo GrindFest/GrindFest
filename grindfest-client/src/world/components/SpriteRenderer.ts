@@ -84,18 +84,18 @@ export default class SpriteRenderer extends Component{
         let animation = action.animationsByDirection.get(direction);
         let thisFrame = animation.frames[this.currentFrame];
 
-        let x = (thisFrame * this.asset.frameWidth) % (this.asset.imageWidth);
-        let y = (thisFrame * this.asset.frameHeight) / (this.asset.imageWidth);
-        y = ~~y;
-        y *= this.asset.frameHeight;
+        let x = (thisFrame) % (this.asset.imageAsset.width / this.asset.frameWidth);
+        let y = Math.floor((thisFrame) / (this.asset.imageAsset.width / this.asset.frameWidth));
 
+        x *= this.asset.frameWidth;
+        y *= this.asset.frameHeight;
 
         ctx.drawImage(this.asset.imageAsset,
             //Source rectangle
             x, y,
             this.asset.frameWidth, this.asset.frameHeight,
             //Destination rectangle
-            -this.asset.frameWidth/2, -this.asset.frameHeight,
-            this.asset.frameWidth, this.asset.frameHeight);
+            -(this.asset.frameWidth * this.asset.scale)/2, -(this.asset.frameHeight * this.asset.scale),
+            this.asset.frameWidth * this.asset.scale, this.asset.frameHeight* this.asset.scale);
     }
 }
