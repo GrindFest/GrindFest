@@ -1,16 +1,17 @@
 import * as React from 'react';
 import Game from "../game/Game";
-import RenderingSystem from "../world/systems/RenderingSystem";
+import RenderingSystem from "../world/rendering/RenderingSystem";
 import World from "../infrastructure/world/World";
-import ContentSystem from "../world/systems/ContentSystem";
+import ContentSystem from "../world/ContentSystem";
 import WorldManager from "../infrastructure/world/WorldManager";
 import {Component} from "react";
-import ZoneSystem from "../world/systems/ZoneSystem";
-import {NetworkManager} from "../network/NetworkManager";
+import ZoneSystem from "../world/zone/ZoneSystem";
+import NetworkManager from "../network/NetworkManager";
 import {ClientGameReady, MessageId} from "../infrastructure/network/Messages";
 import ControllerManager from "../ControllerManager";
-import ControllerSystem from "../world/systems/ControlsSystem";
-import MobileSystem from "../world/systems/MobileSystem";
+import ControllerSystem from "../world/ControlsSystem";
+import MobileSystem from "../world/movement/MobileSystem";
+import EffectSystem from "../world/EffectSystem";
 
 export default class GameScreen extends Component {
 
@@ -29,12 +30,13 @@ export default class GameScreen extends Component {
         world.gameSystems.push(new ZoneSystem());
         world.gameSystems.push(new ControllerSystem());
         world.gameSystems.push(new MobileSystem());
+        world.gameSystems.push(new EffectSystem());
         WorldManager.worlds.push(world);
 
 
         NetworkManager.send({
             id: MessageId.CMSG_GAME_READY
-        } as ClientGameReady); //TODO: this simulations connection to game server
+        } as ClientGameReady); //TODO: this simulates connecting to the zone server
 
         this.canvas.tabIndex = 1000;
         this.canvas.style.outline = "none";

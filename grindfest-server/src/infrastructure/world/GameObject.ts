@@ -37,27 +37,9 @@ export default class GameObject {
     public parent: GameObject; //TODO: do i need this parent child hierarchy for anything? is it good for cleaning up?
     public children: Array<GameObject> = [];
 
-    messageHandlers: Map<Function, any> = new Map();
-
-    addHandler<T>(payloadType: new(...args: any[]) => T,
-                  handler: (owner: GameObject, payload: T) => void) {
-        let handlers = this.messageHandlers.get(payloadType);
-        if (handlers == null) {
-            handlers = new EventEmitter();
-            this.messageHandlers.set(payloadType, handlers);
-        }
-
-        handlers.register(handler);
-
-    }
-
 
     sendMessage<T>(payload: T) {
-        //console.log("GameObject.sendMessage", payload);
-        let handlers = this.messageHandlers.get(payload.constructor);
-        if (handlers != null) {
-            handlers.emit3(this, payload);
-        }
+        this.world.sendMessage(this, payload);
     }
 
 }

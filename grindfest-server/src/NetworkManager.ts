@@ -43,7 +43,7 @@ export default class NetworkManager {
         client.connection.sendUTF(JSON.stringify(message));
     }
 
-
+    //TODO: rewrite this to @messageHandler
     static registerHandler(messageId: number, handler: (...args) => void) {
         let handlers = NetworkManager.handlers.get(messageId);
         if (handlers == null) {

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import LoginScreen from "./LoginScreen";
 import GameScreen from "./GameScreen";
-import {NetworkManager} from "../network/NetworkManager";
+import NetworkManager from "../network/NetworkManager";
 import LoginManager from "../login/LoginManager";
 import {Component} from 'react';
 import {LoginStatus} from "../infrastructure/network/Messages";

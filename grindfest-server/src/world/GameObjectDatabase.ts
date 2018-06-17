@@ -1,10 +1,11 @@
-import Actor from "./components/Actor";
+import Actor from "./zone/Actor";
 import GameObject from "../infrastructure/world/GameObject";
-import NetState from "./components/NetState";
-import Transform from "./components/Transform";
-import Visual from "./components/Visual";
-import Mobile from "./components/Mobile";
-import Behavior from "./components/Behavior";
+import NetState from "./NetState";
+import Transform from "./Transform";
+import Visual from "./Visual";
+import Mobile from "./Mobile";
+import Behavior from "./behavior/Behavior";
+import PowerUser from "./power/PowerUser";
 
 
 export default class GameObjectDatabase {
@@ -22,7 +23,8 @@ export default class GameObjectDatabase {
             go.components.push(new Transform(definition.x, definition.y));
             go.components.push(new Mobile());
             go.components.push(new NetState(definition.client));
-            go.components.push(new Actor(definition.zoneId));
+            go.components.push(new Actor(definition.zoneTag));
+            go.components.push(new PowerUser());
             go.components.push(new Visual("/sprites/hero.json"));
 
             return go;
@@ -33,6 +35,7 @@ export default class GameObjectDatabase {
             go.components.push(new Behavior());
             go.components.push(new Mobile());
             go.components.push(new Actor(definition.zoneId));
+            go.components.push(new PowerUser());
             go.components.push(new Visual("/sprites/golem.json"));
 
             return go;

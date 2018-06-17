@@ -14,7 +14,7 @@ import NetworkManager from "./NetworkManager";
 export interface HeroDefinition { // how to store game objects?
     name: string,
 
-    zoneId: number,
+    zoneTag: string,
     x: number,
     y: number,
 
@@ -42,7 +42,7 @@ export default class LoginManager {
         if (client.heroes.length === 0) {
             let hero: HeroDefinition = {
                 name: "Guest " + Math.round(Math.random() * 100),
-                zoneId: 1,
+                zoneTag: "zone/test",
                 x: Math.round(Math.random() * 2) * 16,
                 y: Math.round(Math.random() * 2) * 16,
                 kills:0,

@@ -2,11 +2,12 @@ import LoginManager from "./LoginManager";
 import WorldManager from "./infrastructure/world/WorldManager";
 import GameObjectDatabase from "./world/GameObjectDatabase";
 import World from "./infrastructure/world/World";
-import ZoneSystem from "./world/systems/ZoneSystem";
-import MobileSystem from "./world/systems/MobileSystem";
+import ZoneSystem from "./world/zone/ZoneSystem";
+import MobileSystem from "./world/MobileSystem";
 import NetworkManager from "./NetworkManager";
-import BehaviorSystem from "./world/systems/BehaviorSystem";
+import BehaviorSystem from "./world/behavior/BehaviorSystem";
 import { performance } from 'perf_hooks';
+import PowerSystem from "./world/power/PowerSystem";
 
 const TIME_STEP = 1/60;
 
@@ -30,6 +31,7 @@ export default class ZoneServer {
         world.gameSystems.push(new ZoneSystem());
         world.gameSystems.push(new MobileSystem());
         world.gameSystems.push(new BehaviorSystem());
+        world.gameSystems.push(new PowerSystem());
 
         WorldManager.worlds.push(world);
 

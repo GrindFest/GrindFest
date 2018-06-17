@@ -1,12 +1,14 @@
 import World from "./World";
 import Component, {Node, Node2, Node3, Node4} from "./Component";
 import GameObject from "./GameObject";
+import EventEmitter from "../EventEmitter";
 
 export default abstract class GameSystem {
 
     world: World;
 
     private registeredNodes: Map<Function[], Node[]> = new Map();
+
 
     update(delta: number) {
 
@@ -115,6 +117,20 @@ export default abstract class GameSystem {
 
     protected registerNodeJunction4<T1 extends Component, T2 extends Component, T3 extends Component, T4 extends Component>(array: Node3<T1, T2, T3>[], component1Type: new(...args: any[]) => T1, component2Type: new(...args: any[]) => T2, component3Type: new(...args: any[]) => T3, component4Type: new(...args: any[]) => T4) {
         this.registeredNodes.set([component1Type, component2Type, component3Type, component4Type], array);
+    }
+
+
+
+    registerPayloadHandler<T>(payloadType: new(...args: any[]) => T,
+                              handler: (owner: GameObject, payload: T) => void) {
+        let handlers = this.world.messageHandlers.get(payloadType);
+        if (handlers == null) {
+            handlers = new EventEmitter();
+            this.world.messageHandlers.set(payloadType, handlers);
+        }
+
+        handlers.register(handler);
+
     }
 
 }

@@ -1,5 +1,6 @@
 import GameSystem from "./GameSystem";
 import GameObject from "./GameObject";
+import EventEmitter from "../EventEmitter";
 
 class GameObjectArray extends Array<GameObject> {
 
@@ -72,6 +73,17 @@ export default class World { //developers note: This is not zone
         }
         for (let gameSystem of this.gameSystems) {
             gameSystem.afterGameObjectAdded(gameObject);
+        }
+    }
+
+
+    messageHandlers: Map<Function, EventEmitter> = new Map();
+
+    sendMessage(gameObject: GameObject, payload: any) {
+
+        let handlers = this.messageHandlers.get(payload.constructor);
+        if (handlers != null) {
+            handlers.emit2(gameObject, payload);
         }
     }
 }

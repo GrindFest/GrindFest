@@ -1,14 +1,14 @@
 import {Vector2} from "../Math";
 
-export enum SkillType {
+export enum PowerType {
     Use,
     Channeling,
     Passive
 }
 
-export interface SkillDefinition {
+export interface PowerDefinition {
     tag: string;
-    type: SkillType
+    type: PowerType
 }
 
 export enum Direction  {
@@ -26,8 +26,9 @@ export enum MessageId {
     CMSG_GAME_READY = 6,
     SMSG_ACTOR_LEAVE_ZONE = 7,
     CMSG_MOVE_REQUEST = 8,
-    CMSG_SKILL_USE = 9,
+    CMSG_POWER_USE = 9,
     SMSG_ACTOR_PLAY_ANIMATION = 10,
+    SMSG_FLOATING_NUMBER = 11,
 }
 
 
@@ -38,9 +39,11 @@ export interface ServerActorPlayAnimation {
     duration: number;
 }
 
-export interface ClientSkillUse {
-    id: MessageId.CMSG_SKILL_USE
-    skillTag: string;
+export interface ClientPowerUse {
+    id: MessageId.CMSG_POWER_USE
+    powerTag: string;
+    targetActorId?: number;
+    targetDirection?: number;
 }
 
 export enum LoginStatus  {
@@ -67,7 +70,7 @@ export interface ClientGameReady extends Message {
 
 export interface ServerEnterZone extends Message {
     id: MessageId.SMSG_ENTER_ZONE;
-    zoneId: number;
+    zoneTag: string;
     //zoneType: ZoneType; // Preset | Generated
     myActorId: number;
 }
@@ -79,7 +82,7 @@ export interface ServerActorLeaveZone extends Message {
 
 export interface ServerActorEnterZone extends Message {
     id: MessageId.SMSG_ACTOR_ENTER_ZONE;
-    zoneId: number;
+    zoneTag: string;
     actorId: number;
     x: number;
     y: number;

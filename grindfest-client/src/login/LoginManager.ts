@@ -1,5 +1,5 @@
 import EventEmitter from "../infrastructure/EventEmitter";
-import {NetworkManager} from "../network/NetworkManager";
+import NetworkManager from "../network/NetworkManager";
 import {ClientLoginRequest, LoginStatus, MessageId, ServerLoginResponse} from "../infrastructure/network/Messages";
 
 export default class LoginManager {
@@ -21,11 +21,13 @@ export default class LoginManager {
         } as ClientLoginRequest);
     }
 
-    static initialize() {
-        NetworkManager.registerHandler(MessageId.SMSG_LOGIN_RESPONSE, (message: ServerLoginResponse) => {
-            this.loginStatus = message.loginStatus;
-            this.loginStatusChanged.emit1(this.loginStatus);
-        });
+    //@messageHandler(MessageId.SMSG_LOGIN_RESPONSE)
+    static onLoginResponse(message: ServerLoginResponse) {
+        LoginManager.loginStatus = message.loginStatus;
+        LoginManager.loginStatusChanged.emit1(LoginManager.loginStatus);
+    }
 
+    static initialize() {
+        NetworkManager.registerHandler(MessageId.SMSG_LOGIN_RESPONSE, LoginManager.onLoginResponse);
     }
 }

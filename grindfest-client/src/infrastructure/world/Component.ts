@@ -20,6 +20,10 @@ export default class Component implements Node {
     get world() { return this.gameObject.world; }
 
 
+    sendMessage<T>(payload: T) {
+        this.gameObject.sendMessage(payload);
+    }
+
 
 }
 

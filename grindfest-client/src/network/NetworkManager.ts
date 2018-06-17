@@ -1,9 +1,7 @@
 import EventEmitter from "../infrastructure/EventEmitter";
 import {Message, MessageId} from "../infrastructure/network/Messages";
 
-
-
-export class NetworkManager {
+export default class NetworkManager {
 
     //TODO: differentiate between LoginServer and GameServer
 
@@ -27,6 +25,7 @@ export class NetworkManager {
         NetworkManager.socket.onopen = (event) => NetworkManager.onConnected(event);
     }
 
+    //TODO: rewrite this to @messageHandler
     static registerHandler<T>(messageId: number, handler: (message: T) => void) { //TODO: this pattern is duplicated on lot of places
         let handlers = NetworkManager.handlers.get(messageId);
         if (handlers == null) {
