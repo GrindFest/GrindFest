@@ -1,5 +1,16 @@
 import {Vector2} from "../Math";
 
+export enum SkillType {
+    Use,
+    Channeling,
+    Passive
+}
+
+export interface SkillDefinition {
+    tag: string;
+    type: SkillType
+}
+
 export enum Direction  {
     Up = 0,
     Right = 1,
@@ -15,6 +26,21 @@ export enum MessageId {
     CMSG_GAME_READY = 6,
     SMSG_ACTOR_LEAVE_ZONE = 7,
     CMSG_MOVE_REQUEST = 8,
+    CMSG_SKILL_USE = 9,
+    SMSG_ACTOR_PLAY_ANIMATION = 10,
+}
+
+
+export interface ServerActorPlayAnimation {
+    id: MessageId.SMSG_ACTOR_PLAY_ANIMATION
+    actorId: number;
+    animationTag: string;
+    duration: number;
+}
+
+export interface ClientSkillUse {
+    id: MessageId.CMSG_SKILL_USE
+    skillTag: string;
 }
 
 export enum LoginStatus  {
@@ -58,7 +84,7 @@ export interface ServerActorEnterZone extends Message {
     x: number;
     y: number;
     spriteAsset: string;
-    //TODO: add velocity
+    velocity: Vector2;
 }
 
 export interface ServerActorMove extends Message {

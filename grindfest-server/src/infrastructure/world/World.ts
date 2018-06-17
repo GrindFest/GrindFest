@@ -57,7 +57,7 @@ class GameSystemArray extends Array<GameSystem> {
 
 }
 
-export default class World {
+export default class World { //developers note: This is not zone
     gameSystems: GameSystemArray = new GameSystemArray(this);
     gameObjects: GameObjectArray = new GameObjectArray(this);
 

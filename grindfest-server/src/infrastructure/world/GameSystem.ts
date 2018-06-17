@@ -1,5 +1,5 @@
 import World from "./World";
-import Component, {Node, Node2, Node3} from "./Component";
+import Component, {Node, Node2, Node3, Node4} from "./Component";
 import GameObject from "./GameObject";
 
 export default abstract class GameSystem {
@@ -47,6 +47,14 @@ export default abstract class GameSystem {
                         c2: components[1],
                         c3: components[2],
                     } as Node3<any, any, any>;
+                } else if (componentTypes.length == 4) {
+                    node = {
+                        gameObject: gameObject,
+                        c1: components[0],
+                        c2: components[1],
+                        c3: components[2],
+                        c4: components[3],
+                    } as Node4<any, any, any, any>;
                 } else {
                     throw "Unsupported component amount " + componentTypes.length;
                 }
@@ -103,6 +111,10 @@ export default abstract class GameSystem {
 
     protected registerNodeJunction3<T1 extends Component, T2 extends Component, T3 extends Component>(array: Node3<T1, T2, T3>[], component1Type: new(...args: any[]) => T1, component2Type: new(...args: any[]) => T2, component3Type: new(...args: any[]) => T3) {
         this.registeredNodes.set([component1Type, component2Type, component3Type], array);
+    }
+
+    protected registerNodeJunction4<T1 extends Component, T2 extends Component, T3 extends Component, T4 extends Component>(array: Node3<T1, T2, T3>[], component1Type: new(...args: any[]) => T1, component2Type: new(...args: any[]) => T2, component3Type: new(...args: any[]) => T3, component4Type: new(...args: any[]) => T4) {
+        this.registeredNodes.set([component1Type, component2Type, component3Type, component4Type], array);
     }
 
 }

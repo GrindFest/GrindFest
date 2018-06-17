@@ -1,20 +1,20 @@
 
 //TODO: this maybe just one big payloads.js file
 
-import Zoned from "../components/Zoned";
+import Actor from "../components/Actor";
 
 export class ActorLeaveZonePayload {
-    who: Zoned;
+    who: Actor;
 
-    constructor(who: Zoned) {
+    constructor(who: Actor) {
         this.who = who;
     }
 }
 
 export class ActorEnterZonePayload {
-    who: Zoned;
+    who: Actor;
 
-    constructor(who: Zoned) {
+    constructor(who: Actor) {
         this.who = who;
     }
 }

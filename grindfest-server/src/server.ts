@@ -1,25 +1,10 @@
-import NetworkManager from "./NetworkManager";
-import LoginManager from "./LoginManager";
-import ZoneSystem from "./world/systems/ZoneSystem";
-import World from "./infrastructure/world/World";
-import WorldManager from "./infrastructure/world/WorldManager";
-import MobileSystem from "./world/systems/MobileSystem";
-import GameObjectDatabase from "./world/GameObjectDatabase";
-
-console.log("GrindFest Server starting...");
+import ZoneServer from "./ZoneServer";
 
 
-NetworkManager.initialize();
-LoginManager.initialize();
+//TODO: separate authentican server from zone server
 
-let world =  new World();
-world.gameSystems.push(new ZoneSystem());
-world.gameSystems.push(new MobileSystem());
 
-WorldManager.worlds.push(world);
+//TODO: start all zone servers
 
-world.gameObjects.push(GameObjectDatabase.createGameObject("golem", {zoneId: 1, x: 3*64, y:3*64}));
-
-setInterval( () => {
-    WorldManager.update(0);
-}, 1000/15);
+let zoneServer = new ZoneServer("/zones/test.json");
+zoneServer.start();

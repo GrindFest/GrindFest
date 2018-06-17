@@ -1,10 +1,8 @@
 import Component from "../../infrastructure/world/Component";
 
-export class Zone {
-    id: number;
-}
 
-export default class Zoned extends Component {
+// An actor in zone, TODO: this name is not selfdescripting
+export default class Actor extends Component {
     public actorId: number;
     public zone: Zone;
     public zoneId: number;

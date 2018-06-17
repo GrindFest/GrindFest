@@ -8,6 +8,9 @@ export default class SpriteRenderer extends Component{
     assetName: string;
     asset: SpriteSheetDefinition;
 
+
+    //TODO: stuff below should be on a Node in RenderingSystem
+
     // Tells if sprite is loaded and can be drawn by renderer
     isReady: boolean = false;
 
@@ -95,7 +98,7 @@ export default class SpriteRenderer extends Component{
             x, y,
             this.asset.frameWidth, this.asset.frameHeight,
             //Destination rectangle
-            -(this.asset.frameWidth * this.asset.scale)/2, -(this.asset.frameHeight * this.asset.scale),
-            this.asset.frameWidth * this.asset.scale, this.asset.frameHeight* this.asset.scale);
+            -(this.asset.frameWidth)/2, -(this.asset.frameHeight),
+            this.asset.frameWidth, this.asset.frameHeight);
     }
 }

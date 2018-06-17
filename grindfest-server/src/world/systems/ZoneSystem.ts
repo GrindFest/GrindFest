@@ -1,4 +1,4 @@
-import Zoned, {Zone} from "../components/Zoned";
+import Actor, {Zone} from "../components/Actor";
 import {EnterZonePayload, ActorEnterZonePayload, ActorLeaveZonePayload} from "../payloads/EnterZonePayload";
 import GameSystem from "../../infrastructure/world/GameSystem";
 import GameObject from "../../infrastructure/world/GameObject";
@@ -16,12 +16,22 @@ import NetworkManager from "../../NetworkManager";
 import Client from "../../Client";
 import LoginManager from "../../LoginManager";
 import GameObjectDatabase from "../GameObjectDatabase";
+import Mobile from "../components/Mobile";
 
+
+
+export class Zone {
+    id: number;
+
+    broadcast() {
+
+    }
+}
 
 export default class ZoneSystem extends GameSystem {
 
-    zoneds: Zoned[] = [];
-    debugZone: Zone;
+    actors: Actor[] = [];
+    zone: Zone;
 
     lastActorId = 1;
 
@@ -29,10 +39,10 @@ export default class ZoneSystem extends GameSystem {
         super();
 
 
-        this.debugZone = new Zone();
-        this.debugZone.id = 1;
+        this.zone = new Zone();
+        this.zone.id = 1;
 
-        this.registerNodeJunction(this.zoneds, Zoned);
+        this.registerNodeJunction(this.actors, Actor);
 
         NetworkManager.disconnectHandler.register(this.onDisconnect.bind(this));
         NetworkManager.registerHandler(MessageId.CMSG_GAME_READY, this.onGameReady.bind(this));
@@ -40,11 +50,11 @@ export default class ZoneSystem extends GameSystem {
     }
 
     findGameObjectByActorId(actorId: number) {
-        return this.zoneds.find( (zoned) => zoned.actorId == actorId).gameObject;
+        return this.actors.find( (zoned) => zoned.actorId == actorId).gameObject;
     }
 
     getZone(zoneId: number) {
-        return this.debugZone;
+        return this.zone;
     }
 
     //TODO: move to worldmanager?
@@ -71,9 +81,9 @@ export default class ZoneSystem extends GameSystem {
 
 
     afterGameObjectRemoved(gameObject: GameObject) { //TODO: these kind of methods would better work on the component/node collection itself
-        let zoned = gameObject.components.get(Zoned) as Zoned;
+        let zoned = gameObject.components.get(Actor) as Actor;
         if (zoned != null) {
-            for (let otherZoned of this.zoneds) {
+            for (let otherZoned of this.actors) {
                 otherZoned.gameObject.sendMessage(new ActorLeaveZonePayload(zoned));
             }
         }
@@ -93,17 +103,20 @@ export default class ZoneSystem extends GameSystem {
 
     afterGameObjectAdded(gameObject: GameObject) { //TODO: change everywhere
 
-        let zoned = gameObject.components.get(Zoned) as Zoned;
-        if (zoned != null) {
-            zoned.zone = this.getZone(zoned.zoneId);
-            zoned.actorId = this.lastActorId++;
+        let actor = gameObject.components.get(Actor) as Actor;
+        if (actor != null) {
+            actor.zone = this.getZone(actor.zoneId); //TODO: can i just assign ZoneSystem here, is it ok that the component will have reference to it's system?
+            actor.actorId = this.lastActorId++;
 
-            zoned.gameObject.sendMessage(new EnterZonePayload());
+            actor.gameObject.sendMessage(new EnterZonePayload());
 
-            for (let otherZoned of this.zoneds) {
-                otherZoned.gameObject.sendMessage(new ActorEnterZonePayload(zoned));
-                if (otherZoned != zoned) {
-                    zoned.gameObject.sendMessage(new ActorEnterZonePayload(otherZoned));
+            //TODO: i should use broadcast here, but that isnt compatible with sending messages to objects
+            // it seems that it should be zone -> world and not world -> zone
+            // but then there would be nothin like actors?
+            for (let otherActor of this.actors) {
+                otherActor.gameObject.sendMessage(new ActorEnterZonePayload(actor));
+                if (otherActor != actor) {
+                    actor.gameObject.sendMessage(new ActorEnterZonePayload(otherActor));
                 }
             }
         }
@@ -115,8 +128,9 @@ export default class ZoneSystem extends GameSystem {
         //TODO: how to send names?
 
         let visual = gameObject.components.get(Visual) as Visual;
-        let zoned = gameObject.components.get(Zoned) as Zoned;
+        let zoned = gameObject.components.get(Actor) as Actor;
         let transform = gameObject.components.get(Transform) as Transform;
+        let mobile = gameObject.components.get(Mobile) as Mobile;
 
 
         NetworkManager.send(targetClient, {
@@ -126,14 +140,15 @@ export default class ZoneSystem extends GameSystem {
             spriteAsset: visual.spriteAsset,
             x: transform.x,
             y: transform.y,
-            direction: transform.direction
+            direction: transform.direction,
+            velocity: mobile.velocity
         } as ServerActorEnterZone);
     }
 
     onEnterZone(owner: GameObject, payload: EnterZonePayload) {
         let netState = owner.components.get(NetState);
 
-        let zoned = owner.components.get(Zoned);
+        let zoned = owner.components.get(Actor);
 
         NetworkManager.send(netState.client, {
             id: MessageId.SMSG_ENTER_ZONE,

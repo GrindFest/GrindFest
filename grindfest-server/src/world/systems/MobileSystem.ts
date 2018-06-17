@@ -1,7 +1,7 @@
 import GameSystem from "../../infrastructure/world/GameSystem";
 import NetworkManager from "../../NetworkManager";
 import {ClientMovementRequest, MessageId, ServerActorMove} from "../../infrastructure/network/Messages";
-import Zoned from "../components/Zoned";
+import Actor from "../components/Actor";
 import Mobile from "../components/Mobile";
 import Client from "../../Client";
 import Transform from "../components/Transform";
@@ -11,14 +11,14 @@ import NetState from "../components/NetState";
 
 export default class MobileSystem extends GameSystem {
 
-    mobiles: {c1: Mobile, c2: Zoned, c3: Transform}[] = []; // [Mobile, Transform]
+    mobiles: {c1: Mobile, c2: Actor, c3: Transform}[] = []; // [Mobile, Transform]
 
     netStates: NetState[] = [];
 
     constructor() {
         super();
 
-        this.registerNodeJunction3(this.mobiles, Mobile, Zoned, Transform);
+        this.registerNodeJunction3(this.mobiles, Mobile, Actor, Transform);
         this.registerNodeJunction(this.netStates, NetState);
 
         NetworkManager.registerHandler(MessageId.CMSG_MOVE_REQUEST, this.onMoveRequest);
@@ -32,8 +32,8 @@ export default class MobileSystem extends GameSystem {
             let zoned = mobileAndZonedAndTransform.c2;
             let transform = mobileAndZonedAndTransform.c3;
 
-            transform.x += mobile.velocity.x;
-            transform.y += mobile.velocity.y;
+            transform.x += mobile.velocity.x * delta;
+            transform.y += mobile.velocity.y * delta;
 
             if (mobile.velocityDirty) {
                 for (let netState of this.netStates) {
@@ -53,8 +53,7 @@ export default class MobileSystem extends GameSystem {
     onMoveRequest(client: Client, message: ClientMovementRequest) {
 
         let mobile = client.hero.components.get(Mobile);
-        mobile.velocity = message.movement;
-        mobile.velocityDirty = true;
+        mobile.setVelocity(message.movement);
 
         let transform = client.hero.components.get(Transform);
         transform.x = message.expectedPosition.x;

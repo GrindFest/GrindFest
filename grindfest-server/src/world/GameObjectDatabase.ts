@@ -1,4 +1,4 @@
-import Zoned from "./components/Zoned";
+import Actor from "./components/Actor";
 import GameObject from "../infrastructure/world/GameObject";
 import NetState from "./components/NetState";
 import Transform from "./components/Transform";
@@ -22,7 +22,7 @@ export default class GameObjectDatabase {
             go.components.push(new Transform(definition.x, definition.y));
             go.components.push(new Mobile());
             go.components.push(new NetState(definition.client));
-            go.components.push(new Zoned(definition.zoneId));
+            go.components.push(new Actor(definition.zoneId));
             go.components.push(new Visual("/sprites/hero.json"));
 
             return go;
@@ -32,7 +32,7 @@ export default class GameObjectDatabase {
             go.components.push(new Transform(definition.x, definition.y));
             go.components.push(new Behavior());
             go.components.push(new Mobile());
-            go.components.push(new Zoned(definition.zoneId));
+            go.components.push(new Actor(definition.zoneId));
             go.components.push(new Visual("/sprites/golem.json"));
 
             return go;

@@ -1,11 +1,11 @@
 # Plan
 
 ### Gameplay
- * Enemies
  * Attacking/Skills
  * Collisions
  * Fixing lag
  * floating damage
+ * creature ai
  * skill ui
  * Map transitions
  * Chat
@@ -401,6 +401,10 @@ you can grind for resurrection crystals or something like that that will reconst
 
 # Development notes
 There are missing folders, Game.js and Network folder should be on a same level
+
+
+server can act either as zone server (for one zone) or as login server
+i would have to git rid of static methods and put them to something like ZoneServer instance
 
 is it zone -> world
 or is it world -> zone

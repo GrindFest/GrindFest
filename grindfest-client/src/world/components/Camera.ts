@@ -5,6 +5,7 @@ import {Vector2} from "../../infrastructure/Math";
 export default class Camera extends Component {
 
     viewport: { width: number, height: number};
+    zoom: number = 4; //TODO: this could be transform.scale if i keep camera as component
 
     unproject(transform: Transform, position: Vector2) {
 

@@ -8,8 +8,10 @@ export default class ControllerManager {
     static mouseY: number = 0;
     static mouseButtons: number = 0;
 
-    static controller1Stick1Direction: number;
-    static controller1ButtonA: boolean;
+    static controller1Stick1Direction: number[];
+    static controller1ButtonA: boolean = false;
+    static controller1ButtonAPressed: boolean = false;
+    static lastController1ButtonA: boolean = false;
 
 
 
@@ -36,27 +38,37 @@ export default class ControllerManager {
 
         if (this.mouseButtons === 1) {
             ControllerManager.controller1ButtonA = true;
+            if (ControllerManager.lastController1ButtonA == false) {
+                ControllerManager.controller1ButtonAPressed = true;
+            } else {
+                ControllerManager.controller1ButtonAPressed = false;
+            }
         } else {
             ControllerManager.controller1ButtonA = false;
         }
+
+        ControllerManager.lastController1ButtonA = ControllerManager.controller1ButtonA;
+
 
         player1Stick2Direction = Math.atan2(
             (ControllerManager.captured.clientHeight / 2) - ControllerManager.mouseY,
             (ControllerManager.captured.clientWidth / 2) - ControllerManager.mouseX);
 
 
-        // if (action.keys == WSAD) {
-        let direction;
-        if (ControllerManager.keys["KeyD"] && ControllerManager.keys["KeyS"]) direction = Math.PI / 4;
-        else if (ControllerManager.keys["KeyW"] && ControllerManager.keys["KeyD"]) direction = Math.PI + Math.PI / 2 + Math.PI / 4;
-        else if (ControllerManager.keys["KeyS"] && ControllerManager.keys["KeyA"]) direction = Math.PI / 2 + Math.PI / 4;
-        else if (ControllerManager.keys["KeyA"] && ControllerManager.keys["KeyW"]) direction = Math.PI + Math.PI / 4;
-        else if (ControllerManager.keys["KeyD"]) direction = 0;
-        else if (ControllerManager.keys["KeyS"]) direction = Math.PI / 2;
-        else if (ControllerManager.keys["KeyA"]) direction = Math.PI;
-        else if (ControllerManager.keys["KeyW"]) direction = Math.PI + Math.PI / 2;
 
-        ControllerManager.controller1Stick1Direction = direction;
+        // if (action.keys == WSAD) {
+        let axes = [0, 0];
+        if (ControllerManager.keys["KeyD"] && ControllerManager.keys["KeyS"]) {axes[0] = 1; axes[1] = 1; }
+        else if (ControllerManager.keys["KeyW"] && ControllerManager.keys["KeyD"]) {axes[0] = 1; axes[1] = -1;}
+        else if (ControllerManager.keys["KeyS"] && ControllerManager.keys["KeyA"]) {axes[0] = -1; axes[1] = 1;}
+        else if (ControllerManager.keys["KeyA"] && ControllerManager.keys["KeyW"]) {axes[0] = -1; axes[1] = -1;}
+        else if (ControllerManager.keys["KeyD"]) {axes[0] = 1; axes[1] = 0}
+        else if (ControllerManager.keys["KeyS"]) {axes[0] = 0; axes[1] = 1}
+        else if (ControllerManager.keys["KeyA"]) {axes[0] = -1; axes[1] = 0}
+        else if (ControllerManager.keys["KeyW"]) {axes[0] = 0; axes[1] = -1}
+
+
+        ControllerManager.controller1Stick1Direction = axes;
         //  }
     }
 

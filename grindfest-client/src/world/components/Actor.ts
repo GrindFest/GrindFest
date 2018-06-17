@@ -1,7 +1,7 @@
 import Component from "../../infrastructure/world/Component";
 
 
-export default class Zoned extends Component {
+export default class Actor extends Component {
 
     actorId: number;
 

@@ -5,7 +5,7 @@ import {
     ServerActorLeaveZone, ServerActorMove,
     ServerEnterZone
 } from "../../infrastructure/network/Messages";
-import Zoned from "../components/Zoned";
+import Actor from "../components/Actor";
 import {NetworkManager} from "../../network/NetworkManager";
 import TileMapRenderer from "../components/TileMapRenderer";
 import SpriteRenderer from "../components/SpriteRenderer";
@@ -15,23 +15,23 @@ import GameObject from "../../infrastructure/world/GameObject";
 import WorldManager from "../../infrastructure/world/WorldManager";
 import Controllable, {Actions} from "../components/Controllable";
 import Mobile from "../components/Mobile";
+import GameObjectDatabase from "../GameObjectDatabase";
 
 export default class ZoneSystem extends GameSystem {
 
-    private zoneds: Zoned[] = [];
+    private actors: Actor[] = [];
 
-    private mobiles: {c1: Zoned, c2: Mobile}[] = [];
+    private mobiles: {c1: Actor, c2: Mobile}[] = [];
 
-    //TODO: should i have multiple zones on client? for loading adjacent zones and seamless world?
-    zoneId: number;
+    zoneId: number; // Client can be in only one zon
     myActorId: number;
 
 
     constructor() {
         super();
 
-        this.registerNodeJunction(this.zoneds, Zoned);
-        this.registerNodeJunction2(this.mobiles, Zoned, Mobile);
+        this.registerNodeJunction(this.actors, Actor);
+        this.registerNodeJunction2(this.mobiles, Actor, Mobile);
 
         NetworkManager.registerHandler(MessageId.SMSG_ACTOR_ENTER_ZONE, this.onActorEnterZone.bind(this));
         NetworkManager.registerHandler(MessageId.SMSG_ACTOR_LEAVE_ZONE, this.onActorLeaveZone.bind(this));
@@ -42,7 +42,7 @@ export default class ZoneSystem extends GameSystem {
 
 
     onActorLeaveZone(message: ServerActorLeaveZone) {
-        let zoned = this.zoneds.find( (zoned) => zoned.actorId == message.actorId);
+        let zoned = this.actors.find( (zoned) => zoned.actorId == message.actorId);
         this.world.gameObjects.remove(zoned.gameObject);
     }
 
@@ -52,12 +52,8 @@ export default class ZoneSystem extends GameSystem {
         let world = this.world;
 
         //TODO: call gameobjectdatabase.createobject and use data from message as definition
-        let actor = new GameObject();
-        actor.components.push(new Zoned(message.actorId));
-        actor.components.push(new Transform(message.x, message.y));
+        let actor = GameObjectDatabase.createGameObject("actor", message);
 
-        actor.components.push(new SpriteRenderer(message.spriteAsset)); //TODO: this could have the asset loaded, the problem is that this is incorrect place to create the object, it should be from gameobjectadatabse that has access to content, so the contentsystem can be contentmanager afterall
-        actor.components.push(new Mobile());
         if (message.actorId == this.myActorId) {
             actor.components.push(new Controllable());
         }

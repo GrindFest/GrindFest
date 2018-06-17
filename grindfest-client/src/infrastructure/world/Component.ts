@@ -10,6 +10,9 @@ export interface Node2<T1, T2> extends Node{
 export interface Node3<T1, T2, T3> extends Node2<T1, T2> {
     c3: T3;
 }
+export interface Node4<T1, T2, T3, T4> extends Node3<T1, T2, T3> {
+    c4: T4;
+}
 export default class Component implements Node {
 
     public gameObject: GameObject;

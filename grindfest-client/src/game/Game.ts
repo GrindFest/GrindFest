@@ -1,12 +1,16 @@
 import WorldManager from "../infrastructure/world/WorldManager";
 import ControllerManager from "../ControllerManager";
 
+
+const TIME_STEP = 1 / 60;
+
 //Is this GameManager? Is this something like TickManager?
 // it has initialize method like other managers,
 // is Game collection of Managers? Then i could remove ugly static classes
 export default class Game {
 
-    lastTick: number;
+    currentTime: number;
+    accumulator: number = 0;
 
 
     constructor() {
@@ -15,21 +19,29 @@ export default class Game {
     }
 
     initialize() {
-        this.lastTick = performance.now();
+        this.currentTime = performance.now();
         requestAnimationFrame(this.tick);
     }
+
+
 
     tick() {
         requestAnimationFrame(this.tick);
 
-        let now = performance.now();
-        let delta = now - this.lastTick;
-        this.lastTick = now;
+        let newTime = performance.now();
+        let frameTime = newTime - this.currentTime;
+        this.currentTime = newTime;
 
-        this.update(delta);
-        this.draw(delta);
+        const dt = TIME_STEP;
 
+        this.accumulator += frameTime;
 
+        while (this.accumulator >= dt) {
+            this.update(dt);
+            this.accumulator -= dt;
+        }
+
+        this.draw(dt);
     }
 
     update(delta: number) {

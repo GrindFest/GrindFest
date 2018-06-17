@@ -1,9 +1,5 @@
 import Client from "./Client";
-import Transform from "./world/components/Transform";
-import Zoned from "./world/components/Zoned";
-import Visual from "./world/components/Visual";
-import NetState from "./world/components/NetState";
-import WorldManager from "./infrastructure/world/WorldManager";
+
 import {
     ClientGameReady,
     ClientLoginRequest,
@@ -47,8 +43,8 @@ export default class LoginManager {
             let hero: HeroDefinition = {
                 name: "Guest " + Math.round(Math.random() * 100),
                 zoneId: 1,
-                x: Math.round(Math.random() * 2) * 64,
-                y: Math.round(Math.random() * 2) * 64,
+                x: Math.round(Math.random() * 2) * 16,
+                y: Math.round(Math.random() * 2) * 16,
                 kills:0,
                 deaths:0,
             };

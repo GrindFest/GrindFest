@@ -51,8 +51,9 @@ export default class RenderingSystem extends GameSystem {
 
     draw(delta) {
 
-        for (let camera of this.cameras) {
-            let cameraTransform = camera.c2;
+        for (let cameraAndTransform of this.cameras) {
+            let cameraTransform = cameraAndTransform.c2;
+            let camera = cameraAndTransform.c1;
 
             let ctx = this.context;
 
@@ -60,16 +61,20 @@ export default class RenderingSystem extends GameSystem {
             ctx.save();
 
 
+
+            // Set camera transformation and set camera to center of screen
+            let x = -(cameraTransform.worldPosition.x * camera.zoom) + (ctx.canvas.width / 2);
+            let y = -(cameraTransform.worldPosition.y * camera.zoom) + (ctx.canvas.height / 2);
+            ctx.translate(x | 0, y | 0);
+            ctx.scale(camera.zoom, camera.zoom);
+
+
             for (let tileMapAndTransform of this.tileMaps) {
                 let tileMap = tileMapAndTransform.c1;
                 let transform = tileMapAndTransform.c2;
                 if (tileMap.asset == null) continue;
 
-                ctx.save();
 
-                let tileMapTransform = tileMap;
-
-                this.updateTransform(ctx, transform, cameraTransform);
 
                 let topLeft = {
                     x: Math.max(0, ((cameraTransform.worldPosition.x - ctx.canvas.width / 2 - tileMap.asset.tilewidth) / 64) | 0),
@@ -80,20 +85,23 @@ export default class RenderingSystem extends GameSystem {
                     y: Math.min(tileMap.asset.height, ((cameraTransform.worldPosition.y + ctx.canvas.height / 2 + tileMap.asset.tileheight) / 64) | 0)
                 };
 
+                topLeft = {x:0, y:0};
+                bottomRight = {x: tileMap.asset.width, y: tileMap.asset.height};
+
                 tileMap.drawLayers(ctx, 0, tileMap.asset.layers.length, topLeft, bottomRight);
 
-                ctx.restore();
             }
 
             for (let spriteAndTransform of this.sprites) {
                 let sprite = spriteAndTransform.c1;
+                let spriteTransform = spriteAndTransform.c2;
 
                 if (sprite.asset == null) continue;
 
                 ctx.save();
 
-                let spriteTransform = sprite.gameObject.components.get(Transform);
-                this.updateTransform(ctx, spriteTransform, cameraTransform);
+                ctx.translate(spriteTransform.worldPosition.x, spriteTransform.worldPosition.y);
+
                 ctx.fillRect(0, 0, 2, 2);
                 sprite.draw(ctx, spriteTransform.direction);
 
@@ -106,15 +114,5 @@ export default class RenderingSystem extends GameSystem {
     }
 
 
-    updateTransform(ctx, transform: Transform, cameraTransform: Transform) {
 
-        // Set camera transformation and set camera to center of screen
-        let x = -cameraTransform.worldPosition.x + (ctx.canvas.width / 2);
-        let y = -cameraTransform.worldPosition.y + (ctx.canvas.height / 2);
-
-        x += transform.worldPosition.x;
-        y += transform.worldPosition.y;
-
-        ctx.setTransform(transform.scale.x, 0, 0, transform.scale.y, x | 0, y | 0);
-    }
 }

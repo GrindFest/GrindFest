@@ -4,18 +4,19 @@ import Transform from "../components/Transform";
 import Mobile from "../components/Mobile";
 import {MessageId, ServerActorMove} from "../../infrastructure/network/Messages";
 import Controllable from "../components/Controllable";
-import Zoned from "../components/Zoned";
+import Actor from "../components/Actor";
 import {NetworkManager} from "../../network/NetworkManager";
+import {normalize} from "../../infrastructure/Math";
 
 export default class MobileSystem extends GameSystem {
     mobiles: { c1: Mobile, c2: SpriteRenderer, c3: Transform }[] = [];
-    zoneds: { c1: Mobile, c2: Zoned }[] = [];
+    zoneds: { c1: Mobile, c2: Actor }[] = [];
 
     constructor() {
         super();
 
         this.registerNodeJunction3(this.mobiles, Mobile, SpriteRenderer, Transform);
-        this.registerNodeJunction2(this.zoneds, Mobile, Zoned);
+        this.registerNodeJunction2(this.zoneds, Mobile, Actor);
 
 
         NetworkManager.registerHandler(MessageId.SMSG_ACTOR_MOVE, this.onActorMove.bind(this));
@@ -60,13 +61,14 @@ export default class MobileSystem extends GameSystem {
                 // TODO: extrapolate future position
 
                 //TODO: fix speed of diagonal movement
-                transform.localPosition.x += (mobile.velocity.x);
-                transform.localPosition.y += (mobile.velocity.y);
+                transform.localPosition.x += (mobile.velocity.x) * delta;
+                transform.localPosition.y += (mobile.velocity.y) * delta;
 
-                let length = Math.sqrt(mobile.velocity.x * mobile.velocity.x + mobile.velocity.y * mobile.velocity.y);
-                let normalizedVelocity = {x: mobile.velocity.x / length, y: mobile.velocity.y / length};
-
-                transform.direction = Math.round((Math.atan2(mobile.velocity.y, mobile.velocity.x) + (Math.PI / 2)) / (Math.PI / 2));
+                let direction = Math.floor( ((Math.PI+Math.atan2(mobile.velocity.y, mobile.velocity.x)) / (2*Math.PI)) * 4);
+                if (direction == 4) { //TODO: [-0.5, 0] returns 4
+                    direction = 0;
+                }
+                transform.direction = Math.floor(direction);
 
             } else {
 
