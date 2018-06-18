@@ -1,14 +1,22 @@
-import World from "./World";
+import Zone from "./Zone";
 import Component, {Node, Node2, Node3, Node4} from "./Component";
 import GameObject from "./GameObject";
 import EventEmitter from "../EventEmitter";
+import {GameObjectLeaveZonePayload} from "./EnterZonePayload";
 
 export default abstract class GameSystem {
 
-    world: World;
+    zone: Zone;
 
     private registeredNodes: Map<Function[], Node[]> = new Map();
 
+    findGameObjectById(id: number): GameObject {
+        return this.zone.gameObjects.find( (go) => go.id === id);
+    }
+
+    initialize() {
+
+    }
 
     update(delta: number) {
 
@@ -97,6 +105,12 @@ export default abstract class GameSystem {
             }
         }
 
+        // why isnt this in zone class?
+        for (let otherGO of this.zone.gameObjects) {
+            otherGO.sendMessage(new GameObjectLeaveZonePayload(gameObject));
+        }
+
+
         this.afterGameObjectRemoved(gameObject);
     }
 
@@ -120,13 +134,22 @@ export default abstract class GameSystem {
     }
 
 
+    messageHandlers: Map<Function, EventEmitter> = new Map();
+
+    sendMessage(gameObject: GameObject, payload: any) {
+
+        let handlers = this.messageHandlers.get(payload.constructor);
+        if (handlers != null) {
+            handlers.emit2(gameObject, payload);
+        }
+    }
 
     registerPayloadHandler<T>(payloadType: new(...args: any[]) => T,
                               handler: (owner: GameObject, payload: T) => void) {
-        let handlers = this.world.messageHandlers.get(payloadType);
+        let handlers = this.messageHandlers.get(payloadType);
         if (handlers == null) {
             handlers = new EventEmitter();
-            this.world.messageHandlers.set(payloadType, handlers);
+            this.messageHandlers.set(payloadType, handlers);
         }
 
         handlers.register(handler);

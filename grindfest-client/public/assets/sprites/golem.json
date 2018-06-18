@@ -7,19 +7,33 @@
   "defaultAction": "walk",
 
   "actions": [{
+    "name": "idle",
+    "wrapMode": 2,
+    "animations": [{
+      "direction": 3,
+      "frames": [0]
+    },{
+      "direction": 0,
+      "frames":  [0]
+    },{
+      "direction": 1,
+      "frames":[0]
+    },{
+      "direction": 2,
+      "frames": [0]
+    }]
+  },{
     "name": "walk",
     "wrapMode": 1,
-    "priority": 1,
-    "duration": 150,
     "animations": [{
       "direction": 3,
       "frames": [6,7,8,9,10,11]
     },{
       "direction": 0,
-      "frames":  [6,7,8,9,10,11]
+      "frames":  [11,10,9,8,7,6]
     },{
       "direction": 1,
-      "frames":[0,1,2,3,4,5]
+      "frames":[5,4,3,2,1,0]
     },{
       "direction": 2,
       "frames": [0,1,2,3,4,5]
@@ -27,7 +41,6 @@
   },{
     "name": "spellcast",
     "wrapMode": 0,
-    "priority": 2,
     "animations": [{
       "direction": 3,
       "frames": [12,13]

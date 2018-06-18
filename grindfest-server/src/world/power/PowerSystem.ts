@@ -9,9 +9,7 @@ import {
 import Client from "../../Client";
 import PowerUser from "./PowerUser";
 import Slash from "./implementation/Slash";
-
-
-
+import {SlashDefinition} from "../../infrastructure/FakeData";
 
 
 export default class PowerSystem extends GameSystem {
@@ -56,24 +54,24 @@ export default class PowerSystem extends GameSystem {
     }
 
     getPower(skillTag: string): PowerDefinition { //TODO: move somehwere else, load from file
-        return {
-            tag: "slash",
-            type:PowerType.Use,
-        }
+        return SlashDefinition
     }
+
     onPowerUse(client: Client, message: ClientPowerUse) {
 
         let hero = client.hero;
 
-         let powerDefinition = this.getPower(message.powerTag);
+        let powerDefinition = this.getPower(message.powerTag);
 
-         let powerUser = hero.components.get(PowerUser);
-         if (powerUser.currentPower != null) {
-             return;
-         }
+        let powerUser = hero.components.get(PowerUser);
+        if (powerUser.currentPower != null) {
+            return;
+        }
 
-         console.log("Using power", message.powerTag);
-         powerUser.currentPower = new Slash(); //TODO: get implementation from definition
+        console.log("Using power", message.powerTag);
+        powerUser.currentPower = new Slash(); //TODO: get implementation from definition
+        powerUser.powerScriptIterator = null;
+        powerUser.currentPowerScript = null;
 
     }
 }

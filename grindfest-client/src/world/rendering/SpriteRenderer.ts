@@ -18,7 +18,10 @@ export default class SpriteRenderer extends Component{
     currentFrame: number = 0;
     currentFrameTime: number = 0;
 
-    currentAction: SpriteSheetAction;
+    currentAction: string;
+
+    duration: number;
+    direction: Direction = Direction.Down;
 
     // @assetName name of sprite to load
     constructor(assetName: string) {
@@ -26,52 +29,51 @@ export default class SpriteRenderer extends Component{
         this.assetName = assetName;
     }
 
-    initialize() {
 
+    // stopAction(actionName: string) {
+    //     if (this.currentAction.name === actionName) {
+    //         this.playAction(this.asset.defaultAction, 1000);
+    //     }
+    // }
+
+    playAction(actionName: string, duration: number, direction: Direction = this.direction) {
+
+        // Reset frame
+        this.currentFrame = 0;
+        this.currentAction = actionName;
+        this.currentFrameTime = 0;
+        this.duration = duration;
+        this.direction = direction;
     }
 
-    stopAction(actionName: string) {
-        if (this.currentAction.name === actionName) {
-            this.setAction(this.asset.defaultAction, true);
+
+
+    update(delta: number) {
+
+        if (this.asset == null || this.currentAction == null) {
+            return;
         }
-    }
-
-    setAction(actionName: string, override: boolean = false) {
-        if (this.currentAction.name !== actionName) {
-
-            let newAction = this.asset.actionsByName.get(actionName);
-
-            if (!override && this.currentAction.priority > newAction.priority)
-                return;
-
-            // Reset frame
-            this.currentFrame = 0;
-            this.currentAction = newAction;
-        }
-    }
-
-
-
-    update(delta: number, direction: Direction) {
-
-        let action = this.currentAction;
+        let action = this.asset.actionsByName.get(this.currentAction);
 
         this.currentFrameTime += delta; //delta.elapsedGameTime;
 
-        while (this.currentFrameTime >= action.duration) {
-            this.currentFrameTime -= action.duration;
+
+        let animation = action.animationsByDirection.get(this.direction);
+
+        let frameDuration = this.duration / animation.frames.length;
+        while (this.currentFrameTime >= frameDuration) {
+            this.currentFrameTime -= frameDuration;
             this.currentFrame++;
         }
 
-        let animation = action.animationsByDirection.get(direction);
 
         if (this.currentFrame >= animation.frames.length) { // Animation eneded
 
-            if (this.currentAction.wrapMode === WrapMode.Once) {
-                this.setAction(this.asset.defaultAction, true);
-            } else if (this.currentAction.wrapMode === WrapMode.Loop) {
+            if (action.wrapMode === WrapMode.Once) {
+                this.currentAction = null;
+            } else if (action.wrapMode === WrapMode.Loop) {
                 this.currentFrame = 0;
-            } else if (this.currentAction.wrapMode === WrapMode.ClampForever) {
+            } else if (action.wrapMode === WrapMode.ClampForever) {
                 this.currentFrame =  animation.frames.length - 1;
             }
 
@@ -80,11 +82,14 @@ export default class SpriteRenderer extends Component{
 
 
 
-    draw(ctx: CanvasRenderingContext2D, direction: Direction) {
+    draw(ctx: CanvasRenderingContext2D) {
 
-        let action = this.currentAction;
+        if (this.asset == null || this.currentAction == null) {
+            return;
+        }
+        let action = this.asset.actionsByName.get(this.currentAction);
 
-        let animation = action.animationsByDirection.get(direction);
+        let animation = action.animationsByDirection.get(this.direction);
         let thisFrame = animation.frames[this.currentFrame];
 
         let x = (thisFrame) % (this.asset.imageAsset.width / this.asset.frameWidth);

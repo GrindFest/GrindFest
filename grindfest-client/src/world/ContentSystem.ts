@@ -78,7 +78,8 @@ class JSONAssetLoader implements AssetLoader<any> {
     }
 }
 
-export default class ContentSystem extends GameSystem { //TODO: this can be made into manager, as everything will be loaded from gameobjectdatabase
+//TODO: this can be made into manager, as everything will be loaded from gameobjectdatabase
+export default class ContentSystem extends GameSystem {
     sprites: Array<SpriteRenderer> = [];
 
     constructor() {
@@ -205,7 +206,6 @@ export default class ContentSystem extends GameSystem { //TODO: this can be made
                 let spriteSheet = await this.load(sprite.assetName);
 
                 sprite.asset = await this.processSpriteSheet(spriteSheet);
-                sprite.currentAction = sprite.asset.actionsByName.get(sprite.asset.defaultAction);
 
             }
         }

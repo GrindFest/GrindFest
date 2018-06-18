@@ -4,12 +4,20 @@ import GameSystem from "../../infrastructure/world/GameSystem";
 import Transform from "../Transform";
 import TileMapRenderer from "./TileMapRenderer";
 import GameObject from "../../infrastructure/world/GameObject";
+import {Direction, MessageId, ServerFloatingNumber} from "../../infrastructure/network/Messages";
+import Mobile from "../movement/Mobile";
+import NetworkManager from "../../network/NetworkManager";
+import GameObjectDatabase from "../GameObjectDatabase";
+import {FloatingTextEffect} from "./ParticleEffect";
+import {Node2} from "../../infrastructure/world/Component";
 
 export default class RenderingSystem extends GameSystem {
 
     cameras: {c1: Camera, c2: Transform}[] = [];
     tileMaps:{c1: TileMapRenderer, c2: Transform}[] = [];
     sprites: {c1: SpriteRenderer, c2:Transform}[] = [];
+    floatingTexts: Node2<FloatingTextEffect, Transform>[] = [];
+
     //weathers: Array<WeatherRenderer> = new Array<WeatherRenderer>();
     //floatingTexts: Array<FloatingText> = new Array<FloatingText>();
 
@@ -26,9 +34,22 @@ export default class RenderingSystem extends GameSystem {
         this.registerNodeJunction2(this.tileMaps, TileMapRenderer, Transform);
         this.registerNodeJunction2(this.sprites, SpriteRenderer, Transform);
         this.registerNodeJunction2(this.cameras, Camera, Transform);
-        //this.registerComponent(this.weathers, WeatherRenderer);
+        this.registerNodeJunction2(this.floatingTexts, FloatingTextEffect, Transform);
+        //this.registerNodeJunction2(this.floatingNumbers, InGameText, Transform);
+        //this.registerComponent(this.weathers, WeatherEffectRenderer);
         //this.registerComponent(this.floatingTexts, FloatingText);
 
+        NetworkManager.registerHandler(MessageId.SMSG_FLOATING_NUMBER, this.onFloatingNumber.bind(this));
+
+    }
+
+    onFloatingNumber(message: ServerFloatingNumber) {
+
+        let go = this.findGameObjectById(message.goId);
+        let transform = go.components.get(Transform);
+        let effectGo = GameObjectDatabase.createGameObject("floatingNumber", {x: transform.worldPosition.x, y: transform.worldPosition.y, ...message});
+
+        this.zone.gameObjects.push(effectGo);
     }
 
 
@@ -36,10 +57,10 @@ export default class RenderingSystem extends GameSystem {
         for (let camera of this.cameras) {
             camera.c1.viewport = {width: this.context.canvas.width, height: this.context.canvas.height}
         }
-        for (let sprite of this.sprites) {
-            if (sprite.c1.asset == null) continue;
 
-            sprite.c1.update(delta, sprite.c2.direction);
+        for (let sprite of this.sprites) {
+
+            sprite.c1.update(delta);
         }
 
         this.sprites.sort((a, b) => {
@@ -47,6 +68,11 @@ export default class RenderingSystem extends GameSystem {
             let transformB = b.c2;
             return transformA.localPosition.y - transformB.localPosition.y;
         });
+
+        // for (let floatingNumberAndTransform of this.floatingNumbers) {
+        //     let floatingNumber = floatingNumberAndTransform.c1;
+        //     floatingNumber.
+        // }
     }
 
     draw(delta) {
@@ -92,20 +118,43 @@ export default class RenderingSystem extends GameSystem {
 
             }
 
+
+
             for (let spriteAndTransform of this.sprites) {
                 let sprite = spriteAndTransform.c1;
-                let spriteTransform = spriteAndTransform.c2;
-
-                if (sprite.asset == null) continue;
+                let transform = spriteAndTransform.c2;
 
                 ctx.save();
 
-                ctx.translate(spriteTransform.worldPosition.x, spriteTransform.worldPosition.y);
+                ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
 
-                ctx.fillRect(0, 0, 2, 2);
-                sprite.draw(ctx, spriteTransform.direction);
+                ctx.fillStyle = "red";
+                ctx.fillRect(0, 0, 1, 1);
+
+
+                let mobile = sprite.gameObject.components.get(Mobile);
+
+
+                sprite.draw(ctx);
 
                 ctx.restore();
+            }
+
+            for (let floatingTextAndTransform of this.floatingTexts) {
+                let floatingText = floatingTextAndTransform.c1;
+                let transform = floatingTextAndTransform.c2;
+
+                let x = transform.worldPosition.x;
+                let y = transform.worldPosition.y;
+
+
+                //TODO: always generating these strings must be slow
+                ctx.font =  (0.3 * transform.scale.x) + "em 'Press Start 2P'";
+                ctx.strokeStyle = `rgba(1, 1, 1, ${floatingText.color.a})`;
+                ctx.lineWidth = 1;
+                ctx.strokeText(floatingText.text, x, y);
+                ctx.fillStyle = `rgba(${floatingText.color.r}, ${floatingText.color.g}, ${floatingText.color.b}, ${floatingText.color.a})`;
+                ctx.fillText(floatingText.text, x, y);
             }
 
 

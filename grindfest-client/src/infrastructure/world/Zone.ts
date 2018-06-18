@@ -1,13 +1,14 @@
 import GameSystem from "./GameSystem";
 import GameObject from "./GameObject";
 import EventEmitter from "../EventEmitter";
+import {GameObjectEnterZonePayload} from "./EnterZonePayload";
 
 class GameObjectArray extends Array<GameObject> {
 
     toDelete: GameObject[] = [];
-    world: World;
+    world: Zone;
 
-    constructor(world: World) {
+    constructor(world: Zone) {
         super();
         this.world = world;
 
@@ -18,12 +19,14 @@ class GameObjectArray extends Array<GameObject> {
     static pushOverride(...items: GameObject[]) {
 
         for (let gameObject of items) {
-            gameObject.world = this["world"];
+            gameObject.zone = this["world"];
+
+            this["pushSuper"](gameObject);
 
             this["world"].onGameObjectAdded(gameObject);
 
         }
-        return this["pushSuper"](...items);
+        return this.length;
     }
 
     remove(gameObject: GameObject) {
@@ -38,29 +41,38 @@ class GameObjectArray extends Array<GameObject> {
 class GameSystemArray extends Array<GameSystem> {
 
     toDelete: GameSystem[] = [];
-    world: World;
+    world: Zone;
 
-    constructor(world: World) {
+    constructor(world: Zone) {
         super();
         this.world = world;
 
         this["pushSuper"] = this.push;
         this.push = GameSystemArray.pushOverride;
+
     }
 
     static pushOverride(...items: GameSystem[]) {
 
         for (let gameSystem of items) {
-            gameSystem.world = this["world"];
+            gameSystem.zone = this["world"];
+            gameSystem.initialize();
         }
         return this["pushSuper"](...items);
     }
 
 }
 
-export default class World { //developers note: This is not zone
+export default class Zone { //developers note: This is not zone
+
     gameSystems: GameSystemArray = new GameSystemArray(this);
     gameObjects: GameObjectArray = new GameObjectArray(this);
+
+
+
+    getGameObjectById(id: number) {
+        return this.gameObjects.find( (go) => go.id === id);
+    }
 
     onGameObjectAdded(gameObject: GameObject) {
 
@@ -71,19 +83,46 @@ export default class World { //developers note: This is not zone
         for (let gameSystem of this.gameSystems) {
             gameSystem.onGameObjectAdded(gameObject);
         }
+        for (let otherGO of this.gameObjects) {
+            otherGO.sendMessage(new GameObjectEnterZonePayload(gameObject));
+            if (otherGO != gameObject) {
+                gameObject.sendMessage(new GameObjectEnterZonePayload(otherGO));
+            }
+        }
         for (let gameSystem of this.gameSystems) {
             gameSystem.afterGameObjectAdded(gameObject);
         }
     }
 
-
-    messageHandlers: Map<Function, EventEmitter> = new Map();
-
     sendMessage(gameObject: GameObject, payload: any) {
 
-        let handlers = this.messageHandlers.get(payload.constructor);
-        if (handlers != null) {
-            handlers.emit2(gameObject, payload);
+        for (let gameSystem of this.gameSystems) {
+            gameSystem.sendMessage(gameObject, payload);
+        }
+
+    }
+
+    update(delta: number) {
+        for (let gameObject of this.gameObjects.toDelete) {
+
+            this.gameObjects.splice(this.gameObjects.indexOf(gameObject), 1);
+
+            for (let gameSystem of this.gameSystems) {
+                gameSystem.removeGameObject(gameObject);
+            }
+
+
+            // remove child from parent collection
+            if (gameObject.parent != null) {
+                gameObject.parent.children.splice(gameObject.parent.children.indexOf(gameObject), 1);
+                gameObject.parent = null;
+            }
+
+            gameObject.zone = null;
+        }
+        this.gameObjects.toDelete.length = 0;
+        for (let system of this.gameSystems) {
+            system.update(delta);
         }
     }
 }

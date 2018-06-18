@@ -1,24 +1,24 @@
 import GameSystem from "../infrastructure/world/GameSystem";
 import NetworkManager from "../NetworkManager";
-import {ClientMovementRequest, MessageId, ServerActorMove} from "../infrastructure/network/Messages";
-import Actor from "./zone/Actor";
+import {ClientMovementRequest, MessageId, ServerMobileMove} from "../infrastructure/network/Messages";
 import Mobile from "./Mobile";
 import Client from "../Client";
 import Transform from "./Transform";
 import NetState from "./NetState";
+import {Node2} from "../infrastructure/world/Component";
 
 
 
 export default class MobileSystem extends GameSystem {
 
-    mobiles: {c1: Mobile, c2: Actor, c3: Transform}[] = []; // [Mobile, Transform]
+    mobiles: Node2<Mobile, Transform>[] = []; // [Mobile, Transform]
 
     netStates: NetState[] = [];
 
     constructor() {
         super();
 
-        this.registerNodeJunction3(this.mobiles, Mobile, Actor, Transform);
+        this.registerNodeJunction2(this.mobiles, Mobile, Transform);
         this.registerNodeJunction(this.netStates, NetState);
 
         NetworkManager.registerHandler(MessageId.CMSG_MOVE_REQUEST, this.onMoveRequest);
@@ -29,8 +29,7 @@ export default class MobileSystem extends GameSystem {
         for (let mobileAndZonedAndTransform of this.mobiles) {
 
             let mobile = mobileAndZonedAndTransform.c1;
-            let zoned = mobileAndZonedAndTransform.c2;
-            let transform = mobileAndZonedAndTransform.c3;
+            let transform = mobileAndZonedAndTransform.c2;
 
             transform.x += mobile.velocity.x * delta;
             transform.y += mobile.velocity.y * delta;
@@ -38,10 +37,10 @@ export default class MobileSystem extends GameSystem {
             if (mobile.velocityDirty) {
                 for (let netState of this.netStates) {
                     NetworkManager.send(netState.client, {
-                        id: MessageId.SMSG_ACTOR_MOVE,
-                        actorId: zoned.actorId,
+                        id: MessageId.SMSG_MOBILE_MOVE,
+                        goId: mobile.gameObject.id,
                         movement: mobile.velocity
-                    } as ServerActorMove);
+                    } as ServerMobileMove);
                 }
 
                 mobile.velocityDirty = false;
