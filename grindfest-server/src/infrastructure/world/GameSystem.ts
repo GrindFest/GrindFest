@@ -10,7 +10,8 @@ export default abstract class GameSystem {
 
     private registeredNodes: Map<Function[], Node[]> = new Map();
 
-    findGameObjectById(id: number): GameObject {
+    findGameObjectById(id: number): GameObject { //TODO: should this throw exception if i can't find the game object?
+        if (id == null) throw "invalid argument id null";
         return this.zone.gameObjects.find( (go) => go.id === id);
     }
 

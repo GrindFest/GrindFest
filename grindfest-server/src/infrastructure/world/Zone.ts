@@ -23,6 +23,9 @@ class GameObjectArray extends Array<GameObject> {
 
             this["pushSuper"](gameObject);
 
+            for (let child of gameObject.children) {
+                this["push"](child);
+            }
             this["world"].onGameObjectAdded(gameObject);
 
         }
