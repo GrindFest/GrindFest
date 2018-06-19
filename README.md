@@ -1,3 +1,30 @@
+# unsorted
+craft dungeon cards by combining different dungeon + modifier cards
+
+or decompose dungeon cards to something like, monster room, treasure room, healing room
+
+collective healtpoints? as a modifier card?
+
+clocks, statue that walks/talks
+
+
+when you die you are removed from the leaderboards
+
+procedural generation
+http://www.squidi.net/three/entry.php?id=202
+
+
+you gain tokens (which is just score) and can bet tokens on dungeons, increasing rewards by not using resurrect toknes - or maybe that is special dungeon type without ress, with ress
+
+
+you can create permament group/guild/clan and there will be permament progressin for it
+
+
+none of the progress must change gameplay in any way, otherwise permadeath would be meaningless
+
+on death your version increases
+
+
 # Plan
 
 ### Gameplay
@@ -375,6 +402,8 @@ customizations stays unlocked
  * character slots
    
 1 character slot, you can buy more for real money - character personality is important so you will not want to kill your character
+
+this wont work without permaprogress as anyone can just create second account
 
  
  no idea if there can be some material progress for intentional perma death as that would take long, maybe something cosmetic - like halo for sacrificing yourself
