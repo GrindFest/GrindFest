@@ -1,4 +1,4 @@
-import WorldManager from "../infrastructure/world/WorldManager";
+import ZoneManager from "../infrastructure/world/ZoneManager";
 import ControllerManager from "../ControllerManager";
 
 
@@ -36,6 +36,10 @@ export default class Game {
 
         this.accumulator += frameTime;
 
+        if (this.accumulator >= 5000) { //TODO: if we are waiting more then 5 seconds to refresh, then don't wait more
+            this.accumulator = 5000;
+        }
+
         while (this.accumulator >= dt) {
             this.update(dt);
             this.accumulator -= dt;
@@ -46,11 +50,11 @@ export default class Game {
 
     update(delta: number) {
        ControllerManager.update(delta);
-       WorldManager.update(delta);
+       ZoneManager.update(delta);
     }
 
     draw(delta: number) {
-        WorldManager.draw(delta);
+        ZoneManager.draw(delta);
     }
 
 }

@@ -2,15 +2,13 @@
 //TODO: is this it? no more types?
 import Component from "../../infrastructure/world/Component";
 import {PowerDefinition, PowerType} from "../../infrastructure/network/Messages";
+import {SlashDefinition} from "../../infrastructure/FakeData";
 
 
 class PowerDatabase {
     static getPower(skillTag: string): PowerDefinition {
         if (skillTag == "slash") {
-            return {
-                tag: "slash",
-                type: PowerType.Use,
-            }
+            return SlashDefinition;
         } else {
             throw "Unknown skill: " + skillTag;
         }

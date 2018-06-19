@@ -1,6 +1,5 @@
 import Component from "./Component";
-import World from "./World";
-import EventEmitter from "../EventEmitter";
+import Zone from "./Zone";
 
 class ComponentArray extends Array<Component> {
     gameObject: GameObject;
@@ -21,7 +20,7 @@ class ComponentArray extends Array<Component> {
         return this["pushSuper"](...items);
     }
 
-    has<T extends Component>(type: (...args: any[]) => T): boolean {
+    has<T extends Component>(type: new(...args: any[]) => T): boolean {
       return this.get(type as any) != null; //TODO: typescript, what/
     }
     get<T extends Component>(type: new(...args: any[]) => T): T {
@@ -31,7 +30,9 @@ class ComponentArray extends Array<Component> {
 
 export default class GameObject {
 
-    public world: World;
+    public id?: number;
+
+    public zone: Zone;
     public components = new ComponentArray(this);
 
     public parent: GameObject; //TODO: do i need this parent child hierarchy for anything? is it good for cleaning up?
@@ -39,7 +40,7 @@ export default class GameObject {
 
 
     sendMessage<T>(payload: T) {
-        this.world.sendMessage(this, payload);
+        this.zone.sendMessage(this, payload);
     }
 
 }

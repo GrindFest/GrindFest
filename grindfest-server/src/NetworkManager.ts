@@ -54,21 +54,9 @@ export default class NetworkManager {
     }
 
 
-    static initialize() {
+    static initialize(server) {
         console.log("NetworkManager.initialize");
-        const server = http.createServer( (request, response) => {
-            console.log((new Date()) + ' Received request for ' + request.url);
-            response.writeHead(404);
-            response.end();
-        });
 
-        server.listen(8080, (err) => {
-            if (err) {
-                return console.log('something bad happened', err)
-            }
-
-            console.log((new Date()) + ' Server is listening on port 8080');
-        });
 
         const wsServer = new websocket.server({
             httpServer: server,

@@ -1,4 +1,18 @@
+# time
+47:48:11
+
 # unsorted
+how much hp do players really need? something like 10*2 hearts?
+i can make some passive skill cards, like for increasing health, or for health regen even?
+light/heavy attacks?
+
+leaderboards with dungeon score, and description on how the dungeon was created (of which cards its composed)
+
+time limit dungeon
+
+zelda randomizer
+twich/streamer support
+
 craft dungeon cards by combining different dungeon + modifier cards
 
 or decompose dungeon cards to something like, monster room, treasure room, healing room
@@ -23,30 +37,41 @@ you can create permament group/guild/clan and there will be permament progressin
 none of the progress must change gameplay in any way, otherwise permadeath would be meaningless
 
 on death your version increases
-
-
+/
 # Plan
 
 ### Gameplay
- * Attacking/Skills
- * Collisions
+ * DONE tilemap support
+ * DONE networking
+ * DONE Attacking/Skills
+ * DONE floating numbers
+ * DONE client Collisions
+ * sliding against collisions, or at least controllersystem should give priority to paths wher you can actually go
  * Fixing lag
- * floating damage
  * creature ai
- * skill ui
- * Map transitions
+ * skill/cards ui
+ * zone transitions
  * Chat
  * Controller support
+ * basic dungeon generator
+ * server side collisions
 
 ### Content
-
+ * enemies
+ * skills
+ 
+ 
+### Gameplay
+ * dungeon generator based on content
+ * party/guild
+ 
 ### Graphical enhancments
  * Lightning from fire
  * water (stepping in water sounds ripples)
  * Water reflections (sworcery, that castle building 2d game - Kingdom)
+ * wind, wind moving fire particles
+ * wheater (rain, fog)
  * Crysrtal distortion effect
- * Seamless map transitions
-
 
 
 # Meta
@@ -358,6 +383,8 @@ everyone will always be attacking or moving - no need for idle animation
   guy with shield
   guy with long range weapon
   
+  
+  glowing eyes indicating some action
  
  
 ### Items

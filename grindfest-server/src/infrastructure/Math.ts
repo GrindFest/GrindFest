@@ -1,5 +1,13 @@
+export function randomRange(min: number, max: number) {
+    return Math.random() * (max - min) + min;
+}
+
 export function multiply(v: Vector2, a: number) {
     return {x: v.x * a, y: v.y * a};
+}
+
+export function length(v: Vector2) {
+    return Math.sqrt(v.x * v.x + v.y * v.y);
 }
 
 export function normalize(v: Vector2) {

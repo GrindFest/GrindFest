@@ -34,7 +34,7 @@
 0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <layer name="Collisions" width="10" height="10" visible="0">
+ <layer name="Collision" width="10" height="10">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,
 0,0,1025,0,0,0,0,1025,0,0,

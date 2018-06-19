@@ -8,8 +8,6 @@ export interface SpriteSheetDefinition {
 
     scale: number
 
-    defaultAction: string;
-
     actions: SpriteSheetAction[];
 
     actionsByName: Map<string, SpriteSheetAction>;
@@ -24,10 +22,9 @@ export enum WrapMode {
 export interface SpriteSheetAction {
     name: string;
     wrapMode: WrapMode;
-    priority: number;
+
     animations: SpriteSheetAnimation[];
 
-    duration: number;
     animationsByDirection: Map<Direction, SpriteSheetAnimation>;
 
     height: number;

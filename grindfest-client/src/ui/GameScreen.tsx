@@ -1,17 +1,18 @@
 import * as React from 'react';
 import Game from "../game/Game";
 import RenderingSystem from "../world/rendering/RenderingSystem";
-import World from "../infrastructure/world/World";
 import ContentSystem from "../world/ContentSystem";
-import WorldManager from "../infrastructure/world/WorldManager";
 import {Component} from "react";
 import ZoneSystem from "../world/zone/ZoneSystem";
 import NetworkManager from "../network/NetworkManager";
 import {ClientGameReady, MessageId} from "../infrastructure/network/Messages";
 import ControllerManager from "../ControllerManager";
-import ControllerSystem from "../world/ControlsSystem";
+import ControllerSystem from "../world/controls/ControlsSystem";
 import MobileSystem from "../world/movement/MobileSystem";
-import EffectSystem from "../world/EffectSystem";
+import ZoneManager from "../infrastructure/world/ZoneManager";
+import Zone from "../infrastructure/world/Zone";
+import TimerSystem from "../world/TimerSystem";
+import {ParticleSystem} from "../world/rendering/ParticleSystem";
 
 export default class GameScreen extends Component {
 
@@ -24,14 +25,15 @@ export default class GameScreen extends Component {
         game.initialize();
 
 
-        let world = new World();
-        world.gameSystems.push(new ContentSystem());
-        world.gameSystems.push(new RenderingSystem(this.canvas.getContext("2d")));
-        world.gameSystems.push(new ZoneSystem());
-        world.gameSystems.push(new ControllerSystem());
-        world.gameSystems.push(new MobileSystem());
-        world.gameSystems.push(new EffectSystem());
-        WorldManager.worlds.push(world);
+        let zone = new Zone();
+        zone.gameSystems.push(new ContentSystem());
+        zone.gameSystems.push(new RenderingSystem(this.canvas.getContext("2d")));
+        zone.gameSystems.push(new ZoneSystem());
+        zone.gameSystems.push(new ControllerSystem());
+        zone.gameSystems.push(new MobileSystem());
+        zone.gameSystems.push(new TimerSystem());
+        zone.gameSystems.push(new ParticleSystem());
+        ZoneManager.zones.push(zone);
 
 
         NetworkManager.send({

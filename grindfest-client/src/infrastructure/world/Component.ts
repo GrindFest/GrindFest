@@ -17,7 +17,7 @@ export default class Component implements Node {
 
     public gameObject: GameObject;
 
-    get world() { return this.gameObject.world; }
+    get world() { return this.gameObject.zone; }
 
 
     sendMessage<T>(payload: T) {

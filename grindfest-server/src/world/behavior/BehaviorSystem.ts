@@ -24,8 +24,8 @@ export default class BehaviorSystem extends GameSystem {
             let transform = behaviorAndMobile.c3;
             if (behavior.gotoPosition == null) { //TODO: change to state machine, and status == idle
                 behavior.gotoPosition = {
-                    x: Math.floor(Math.random() * 10) * 16,
-                    y: Math.floor(Math.random() * 10) * 16
+                    x: Math.floor(Math.random() * 5) * 16,
+                    y: Math.floor(Math.random() * 5) * 16
                 };
 
                 //TODO: maybecc i shouldn't access properties of components that the system doesn't own, this could be changed by a method on mobilesystem, which would ensure you are not moving faster than you can
@@ -35,7 +35,7 @@ export default class BehaviorSystem extends GameSystem {
                     y: behavior.gotoPosition.y - transform.y
                 });
 
-                let speed = 0.025;
+                let speed = 0.017;
 
                 velocity = multiply(velocity, speed);
 

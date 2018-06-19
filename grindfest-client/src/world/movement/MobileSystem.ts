@@ -2,80 +2,57 @@ import GameSystem from "../../infrastructure/world/GameSystem";
 import SpriteRenderer from "../rendering/SpriteRenderer";
 import Transform from "../Transform";
 import Mobile from "./Mobile";
-import {MessageId, ServerActorMove} from "../../infrastructure/network/Messages";
-import Actor from "../zone/Actor";
-import NetworkManager from "../../network/NetworkManager";
+import {Node2} from "../../infrastructure/world/Component";
+import TileMapRenderer from "../rendering/TileMapRenderer";
 
 export default class MobileSystem extends GameSystem {
-    mobiles: { c1: Mobile, c2: SpriteRenderer, c3: Transform }[] = [];
-    actors: { c1: Mobile, c2: Actor }[] = [];
+    mobiles: Node2<Mobile, Transform>[] = [];
+    private tileMaps: TileMapRenderer[] = [];
 
     constructor() {
         super();
 
-        this.registerNodeJunction3(this.mobiles, Mobile, SpriteRenderer, Transform);
-        this.registerNodeJunction2(this.actors, Mobile, Actor);
+        this.registerNodeJunction2(this.mobiles, Mobile, Transform);
 
-        NetworkManager.registerHandler(MessageId.SMSG_ACTOR_MOVE, this.onActorMove.bind(this));
-
-    }
-
-
-    // everyone from server is controlled by interpolation and not by actions like move
-
-    //@messageHandler(MessageId.SMSG_ACTOR_MOVE)
-    onActorMove(message: ServerActorMove) {
-
-        //TODO: if this is my actor should i do something differently?
-
-        let zonedAndMobile = this.actors.find((zoned) => zoned.c2.actorId == message.actorId);
-
-        let mobile = zonedAndMobile.c1;
-
-        mobile.history.push({
-            position: message.position,
-            velocity: message.movement
-        });
-
-        mobile.velocity = message.movement;
-
+        //TODO: i dont like that there is one tilemap and i need an array, also whats with the name tilemapRENDERER?
+        this.registerNodeJunction(this.tileMaps, TileMapRenderer);
 
     }
+
 
     update(delta: number) {
-        for (let mobileAndSpriteAndTransform of this.mobiles) {
-            let mobile = mobileAndSpriteAndTransform.c1;
+        for (let mobileAndTransform of this.mobiles) {
+            let mobile = mobileAndTransform.c1;
 
             if (mobile.velocity.x != 0 || mobile.velocity.y != 0) {
-                let sprite = mobileAndSpriteAndTransform.c2; //TODO: should this be here or in renderer?
-                if (sprite != null) {
-                    if (sprite.asset != null) { //TODO: its ugly that i have to check this everywhere
-                        sprite.setAction("walk")
-                    }
-                }
 
-                let transform = mobileAndSpriteAndTransform.c3;
+                let transform = mobileAndTransform.c2;
 
 
                 // TODO: extrapolate future position
 
                 //TODO: fix speed of diagonal movement
-                transform.localPosition.x += (mobile.velocity.x) * delta;
-                transform.localPosition.y += (mobile.velocity.y) * delta;
+                let x = (mobile.velocity.x) * delta;
+                let y = (mobile.velocity.y) * delta;
 
-                let direction = Math.floor( ((Math.PI+Math.atan2(mobile.velocity.y, mobile.velocity.x)) / (2*Math.PI)) * 4);
-                if (direction == 4) { //TODO: [-0.5, 0] returns 4
-                    direction = 0;
-                }
-                transform.direction = Math.floor(direction);
+                //TODO: check for collision
+                // problem is currently zone can have multiple tilemaps, which doesn't really make sense, but removing this would
+                // mean that tilemap will no longer be a component?
+                // or should i just always take first tilemap component i can find?
 
-            } else {
+                let tileMap = this.tileMaps[0];
 
-                let sprite = mobileAndSpriteAndTransform.c2; //TODO: should this be here or in renderer?
-                if (sprite != null) {
-                    if (sprite.asset != null) { //TODO: its ugly that i have to check this everywhere
-                        sprite.stopAction("walk")
-                    }
+                // i might not have tilemap asset loaded here yet... i should not send game ready packet until i do
+
+
+                let tileX = ((transform.worldPosition.x + x) / tileMap.asset.tilewidth) | 0;
+                let tileY = ((transform.worldPosition.y + y) / tileMap.asset.tilewidth) | 0;
+                let tileId = tileMap.asset.collisionLayer.data[tileX + tileY * tileMap.asset.collisionLayer.width];
+
+                if (tileId == 0) {
+
+                    transform.localPosition.x += x;
+                    transform.localPosition.y += y;
                 }
             }
         }
