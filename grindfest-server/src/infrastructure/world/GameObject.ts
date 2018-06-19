@@ -1,5 +1,6 @@
 import Component from "./Component";
 import Zone from "./Zone";
+import AttributeContainer from "./AttributeContainer";
 
 class ComponentArray extends Array<Component> {
     gameObject: GameObject;
@@ -28,13 +29,15 @@ class ComponentArray extends Array<Component> {
     }
 }
 
-export default class GameObject {
+export default class GameObject extends AttributeContainer {
 
     public id?: number;
 
     public zone: Zone;
     public components = new ComponentArray(this);
 
+    // this is necessary for on screen hearts, even something like armor overlay would need this as both of those are just mobileSprites
+    // but it seems to be necessary only for deleting of game objects, or should i use it as parentGo.transform?
     public parent: GameObject; //TODO: do i need this parent child hierarchy for anything? is it good for cleaning up?
     public children: Array<GameObject> = [];
 

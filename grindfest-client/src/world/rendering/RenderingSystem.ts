@@ -9,12 +9,13 @@ import GameObjectDatabase from "../GameObjectDatabase";
 import {FloatingTextEffect, ParticleEffect} from "./ParticleEffect";
 import {Node2, Node3} from "../../infrastructure/world/Component";
 import HeartIndicatorRenderer from "./HeartIndicatorRenderer";
+import Mobile from "../movement/Mobile";
 
 export default class RenderingSystem extends GameSystem {
 
     cameras: {c1: Camera, c2: Transform}[] = [];
     tileMaps:{c1: TileMapRenderer, c2: Transform}[] = [];
-    sprites: {c1: SpriteRenderer, c2:Transform}[] = [];
+    mobileSprites: Node3<SpriteRenderer, Mobile, Transform>[] = [];
     floatingTexts: Node2<FloatingTextEffect, Transform>[] = [];
     particles: Node2<ParticleEffect, Transform>[] = [];
     heartIndicators: Node3<HeartIndicatorRenderer, Transform, SpriteRenderer>[] = [];
@@ -33,7 +34,7 @@ export default class RenderingSystem extends GameSystem {
 
         // We register all components that we need, and they will be added to these arrays, as gameobjects are added to world
         this.registerNodeJunction2(this.tileMaps, TileMapRenderer, Transform);
-        this.registerNodeJunction2(this.sprites, SpriteRenderer, Transform);
+        this.registerNodeJunction3(this.mobileSprites, SpriteRenderer, Mobile, Transform);
         this.registerNodeJunction2(this.cameras, Camera, Transform);
         this.registerNodeJunction2(this.floatingTexts, FloatingTextEffect, Transform);
         this.registerNodeJunction3(this.heartIndicators, HeartIndicatorRenderer, Transform, SpriteRenderer);
@@ -41,36 +42,21 @@ export default class RenderingSystem extends GameSystem {
         //this.registerNodeJunction2(this.floatingNumbers, InGameText, Transform);
         //this.registerComponent(this.weathers, WeatherEffectRenderer);
         //this.registerComponent(this.floatingTexts, FloatingText);
-
-        NetworkManager.registerHandler(MessageId.SMSG_FLOATING_NUMBER, this.onFloatingNumber.bind(this));
-
     }
-
-    onFloatingNumber(message: ServerFloatingNumber) {
-
-        let go = this.findGameObjectById(message.goId);
-        let transform = go.components.get(Transform);
-        let sprite = go.components.get(SpriteRenderer);
-        if (sprite.asset == null) return;
-        let effectGo = GameObjectDatabase.createGameObject("floatingNumber", {x: transform.worldPosition.x, y: transform.worldPosition.y - sprite.asset.frameWidth*3/4, ...message});
-
-        this.zone.gameObjects.push(effectGo);
-    }
-
 
     update(delta: number) {
         for (let camera of this.cameras) {
             camera.c1.viewport = {width: this.context.canvas.width, height: this.context.canvas.height}
         }
 
-        for (let sprite of this.sprites) {
+        for (let sprite of this.mobileSprites) {
 
-            sprite.c1.update(delta);
+            sprite.c1.update(delta, sprite.c2.direction);
         }
 
-        this.sprites.sort((a, b) => {
-            let transformA = a.c2;
-            let transformB = b.c2;
+        this.mobileSprites.sort((a, b) => {
+            let transformA = a.c3;
+            let transformB = b.c3;
             return transformA.localPosition.y - transformB.localPosition.y;
         });
 
@@ -125,9 +111,10 @@ export default class RenderingSystem extends GameSystem {
 
 
 
-            for (let spriteAndTransform of this.sprites) {
+            for (let spriteAndTransform of this.mobileSprites) {
                 let sprite = spriteAndTransform.c1;
-                let transform = spriteAndTransform.c2;
+                let mobile = spriteAndTransform.c2;
+                let transform = spriteAndTransform.c3;
 
                 ctx.save();
 
@@ -136,7 +123,7 @@ export default class RenderingSystem extends GameSystem {
                 ctx.fillStyle = "red";
                 ctx.fillRect(0, 0, 1, 1);
 
-                sprite.draw(ctx);
+                sprite.draw(ctx, mobile.direction);
 
                 ctx.restore();
             }

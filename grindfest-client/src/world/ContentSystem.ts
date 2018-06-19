@@ -5,6 +5,7 @@ import {SpriteSheetDefinition} from "../infrastructure/definitions/SpriteSheetDe
 import TileMapRenderer from "./rendering/TileMapRenderer";
 import {TileMapDefinition} from "../infrastructure/definitions/TileMapDefinition";
 import HeartIndicatorRenderer from "./rendering/HeartIndicatorRenderer";
+import {ParticleEffect} from "./rendering/ParticleEffect";
 
 interface AssetLoader<T> {
     load(assetName: string): Promise<T>;
@@ -203,12 +204,21 @@ export default class ContentSystem extends GameSystem {
 
                 tileMapRenderer.asset = mapAsset;
 
+            } else if (component instanceof ParticleEffect) {
+                let particleEffect: ParticleEffect = component;
+
+                let assets: HTMLImageElement[] = [];
+                for (let [index, assetName] of particleEffect.assetNames.entries()) {
+                    assets[index] =await this.load<HTMLImageElement>(assetName);
+                }
+                particleEffect.assets = assets;
+
             } else if (component instanceof SpriteRenderer) {
                 let sprite: SpriteRenderer = component;
-                let spriteSheet = await this.load(sprite.assetName);
+                let spriteSheet = await this.load<HTMLImageElement>(sprite.assetName);
 
                 sprite.asset = await this.processSpriteSheet(spriteSheet);
-            }else if (component instanceof HeartIndicatorRenderer) {
+            } else if (component instanceof HeartIndicatorRenderer) {
                 let heartIndicatorRenderer: HeartIndicatorRenderer = component;
 
                 heartIndicatorRenderer.asset = await this.load<HTMLImageElement>(heartIndicatorRenderer.assetName);

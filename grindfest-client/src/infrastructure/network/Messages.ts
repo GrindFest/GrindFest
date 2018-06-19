@@ -62,6 +62,7 @@ export interface ServerGameObjectPlayEffect {
     id: MessageId.SMSG_GO_PLAY_EFFECT;
     goId: number;
     effectTag: string;
+    direction: number;
 }
 
 export interface ServerFloatingNumber { //TODO: is this ServerGameObjectFloatingNumber?
@@ -75,6 +76,7 @@ export interface ServerGameObjectPlayAnimation {
     id: MessageId.SMSG_GO_PLAY_ANIMATION;
     goId: number;
     animationTag: string;
+    direction: number;
     duration: number;
 }
 

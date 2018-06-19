@@ -62,7 +62,7 @@ export default class ControlsSystem extends GameSystem {
 
         //TODO: should i pass override = true when server says to do it?
 
-        this.startAnimation(controllable, message.animationTag, message.duration);
+        this.startAnimation(controllable, message.animationTag, message.direction, message.duration);
     }
 
     update(dt) {
@@ -106,7 +106,7 @@ export default class ControlsSystem extends GameSystem {
                 if (power.type == PowerType.Use) {
                     // maybe not it might be just controller systems job to enque next attack even if i click before being able to do it
                     // that would mean that he would not do the movement
-                    this.startAnimation(controllable, power.animationTag, power.duration);
+                    this.startAnimation(controllable, power.animationTag, direction, power.duration);
                 }
             }
 
@@ -172,14 +172,10 @@ export default class ControlsSystem extends GameSystem {
         mobile.velocity.x = velocity.x;
         mobile.velocity.y = velocity.y;
 
-        //TODO: change this to some better arc circle sections, or whatever its called
-        let direction = Math.floor(((Math.PI + Math.atan2(mobile.velocity.y, mobile.velocity.x)) / (2 * Math.PI)) * 4);
-        if (direction == 4) { //TODO: [-0.5, 0] returns 4
-            direction = 0;
-        }
-        mobile.direction = Math.floor(direction);
 
-        spriteRenderer.playAction("walk", 35 / speed, mobile.direction);
+        mobile.direction =  Math.atan2(mobile.velocity.y, mobile.velocity.x);
+
+        spriteRenderer.playAction("walk", 35 / speed);
 
         controllable.state = Actions.Move;
 
@@ -223,11 +219,14 @@ export default class ControlsSystem extends GameSystem {
     }
 
 
-    startAnimation(controllable: Controllable, animationTag: string, duration: number) {
+    startAnimation(controllable: Controllable, animationTag: string, direction: number, duration: number) {
 
         if (controllable.state == Actions.Move) {
             this.stopMoving(controllable);
         }
+
+        let mobile = controllable.gameObject.components.get(Mobile);
+        mobile.direction = direction;
 
         let sprite = controllable.gameObject.components.get(SpriteRenderer);
         sprite.playAction(animationTag, duration); //TODO: should i get direction from server?

@@ -1,0 +1,1 @@
+mklink /J grindfest-server\src\infrastructure grindfest-client\src\infrastructure\

@@ -17,7 +17,7 @@ export default class Slash extends PowerImplementation {
 
     * execute(user: PowerUser, target: GameObject, targetDirection: number): IterableIterator<PowerScript> {
         user.sendMessage(new PlayEffectPayload("windSlashLarge", targetDirection));
-        yield new PlayAnimation(user,"spellcast", this.powerDefinition.duration);
+        yield new PlayAnimation(user,"spellcast", targetDirection, this.powerDefinition.duration);
 
         console.log("slash dir", targetDirection);
         let attack = new AttackPayload(7);

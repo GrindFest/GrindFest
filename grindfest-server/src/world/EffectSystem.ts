@@ -14,14 +14,16 @@ export class PlayEffectPayload {
 
 }
 export class PlayAnimationPayload {
-    constructor(animationTag: string, duration: number) {
+    constructor(animationTag: string, direction: number, duration: number) {
         this.animationTag = animationTag;
         this.duration = duration;
+        this.direction = direction;
 
     }
 
     animationTag: string;
     duration: number;
+    direction: number;
 }
 
 export default class EffectSystem extends GameSystem {
@@ -55,7 +57,8 @@ export default class EffectSystem extends GameSystem {
             id: MessageId.SMSG_GO_PLAY_ANIMATION,
             goId: gameObject.id,
             animationTag: payload.animationTag,
-            duration: payload.duration
+            duration: payload.duration,
+            direction: payload.direction
         } as ServerGameObjectPlayAnimation);
     }
 }

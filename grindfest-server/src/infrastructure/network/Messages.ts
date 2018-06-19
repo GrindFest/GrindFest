@@ -31,10 +31,23 @@ export enum MessageId {
     CMSG_POWER_USE = 9,
     SMSG_GO_PLAY_ANIMATION = 10,
     SMSG_FLOATING_NUMBER = 11,
+    SMSG_ATTRIBUTE_SET = 12,
+    SMSG_GO_PLAY_EFFECT = 13,
+}
+
+
+export interface ServerAttributeSet {
+    id: MessageId.SMSG_ATTRIBUTE_SET,
+    goId: number;
+    changes: [{
+        attributeId: AttributeId;
+        value: number;
+    }]
 }
 
 export enum AttributeId {
     HitPoints,
+    MaxHitPoints,
     FireDamage,
     FireResist,
 }
@@ -45,7 +58,14 @@ export enum FloatingNumberType {
     RedCritical,
 }
 
-export interface ServerFloatingNumber {
+export interface ServerGameObjectPlayEffect {
+    id: MessageId.SMSG_GO_PLAY_EFFECT;
+    goId: number;
+    effectTag: string;
+    direction: number;
+}
+
+export interface ServerFloatingNumber { //TODO: is this ServerGameObjectFloatingNumber?
     id: MessageId.SMSG_FLOATING_NUMBER;
     goId: number;
     value: number;
@@ -56,6 +76,7 @@ export interface ServerGameObjectPlayAnimation {
     id: MessageId.SMSG_GO_PLAY_ANIMATION;
     goId: number;
     animationTag: string;
+    direction: number;
     duration: number;
 }
 
@@ -103,10 +124,14 @@ export interface ServerGameObjectLeaveZone extends Message {
 export interface ServerGameObjectEnterZone extends Message {
     id: MessageId.SMSG_GO_ENTER_ZONE;
     goId: number;
+
+    //TODO: are all of these attributes?
     x: number;
     y: number;
     spriteAsset: string;
     velocity: Vector2;
+
+    attributes: {attributeId: AttributeId, value: number}[]
 }
 
 

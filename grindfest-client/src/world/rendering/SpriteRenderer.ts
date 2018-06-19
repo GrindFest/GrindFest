@@ -21,7 +21,6 @@ export default class SpriteRenderer extends Component{
     currentAction: string;
 
     duration: number;
-    direction: Direction = Direction.Down;
 
     // @assetName name of sprite to load
     constructor(assetName: string) {
@@ -36,19 +35,26 @@ export default class SpriteRenderer extends Component{
     //     }
     // }
 
-    playAction(actionName: string, duration: number, direction: Direction = this.direction) {
+    playAction(actionName: string, duration: number) {
 
         // Reset frame
         this.currentFrame = 0;
         this.currentAction = actionName;
         this.currentFrameTime = 0;
         this.duration = duration;
-        this.direction = direction;
     }
 
 
+    getDirection(direction: number): Direction {
+        //TODO: change this to some better arc circle sections, or whatever its called
+        let dir = Math.floor(((Math.PI + direction) / (2 * Math.PI)) * 4);
+        if (dir == 4) { //TODO: [-0.5, 0] returns 4 //TODO: use directions from current animation, then we can remove golem animations for up and down and it will be correctly computed by this
+            dir = 0;
+        }
+        return dir;
+    }
 
-    update(delta: number) {
+    update(delta: number, direction: number) {
 
         if (this.asset == null || this.currentAction == null) {
             return;
@@ -58,7 +64,7 @@ export default class SpriteRenderer extends Component{
         this.currentFrameTime += delta; //delta.elapsedGameTime;
 
 
-        let animation = action.animationsByDirection.get(this.direction);
+        let animation = action.animationsByDirection.get(this.getDirection(direction));
 
         let frameDuration = this.duration / animation.frames.length;
         while (this.currentFrameTime >= frameDuration) {
@@ -82,14 +88,15 @@ export default class SpriteRenderer extends Component{
 
 
 //maybe its not problem to have methods on components, but they can't access attributes from here or expect other components to exist
-    draw(ctx: CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D, direction: number) {
 
         if (this.asset == null || this.currentAction == null) {
             return;
         }
+
         let action = this.asset.actionsByName.get(this.currentAction);
 
-        let animation = action.animationsByDirection.get(this.direction);
+        let animation = action.animationsByDirection.get(this.getDirection(direction));
         let thisFrame = animation.frames[this.currentFrame];
 
         let x = (thisFrame) % (this.asset.imageAsset.width / this.asset.frameWidth);
