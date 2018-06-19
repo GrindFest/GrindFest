@@ -4,7 +4,7 @@ import NetState from "../NetState";
 import Transform from "../Transform";
 import {
     ClientGameReady, Message,
-    MessageId, ServerGameObjectEnterZone, ServerGameObjectLeaveZone, ServerHeroEnterZone
+    MessageId, ServerAttributeSet, ServerGameObjectEnterZone, ServerGameObjectLeaveZone, ServerHeroEnterZone
 } from "../../infrastructure/network/Messages";
 import Visual from "../Visual";
 import NetworkManager from "../../NetworkManager";
@@ -15,27 +15,57 @@ import Mobile from "../Mobile";
 import {Node2, Node3} from "../../infrastructure/world/Component";
 
 
-//TODO: how about this? interface Player implements Node2<NetState, Actor>
+//TODO: how about this? interface Player implements Node2<NetState, Transform>
 
 export default class ZoneSystem extends GameSystem {
 
 
-    netStates: Node2<NetState, Transform>[] = [];
+    players: Node2<NetState, Transform>[] = []; //TODO: transform wouldnt be necessary here if x,y were attributes
     zoneTag: string;
     lastGameObjectId = 1;
 
     constructor() {
         super();
 
-        this.zoneTag = "zone/test";
+        this.zoneTag = "zone/test"; //TODO: why isnt there .json at the end?
 
-        this.registerNodeJunction2(this.netStates, NetState, Transform);
+        this.registerNodeJunction2(this.players, NetState, Transform);
 
         NetworkManager.disconnectHandler.register(this.onDisconnect.bind(this));
         NetworkManager.registerHandler(MessageId.CMSG_GAME_READY, this.onGameReady.bind(this));
-
     }
 
+    update(dt: number) {
+        //TODO: What is correct collection here? are there gameobjects that shouldnt be synchronized with client? most likely yes, so how to identify them?
+        // maybe it should be some sort of flag on game object? or something making it invisible
+        for (let go of this.zone.gameObjects) {
+
+            //TODO: maybe use different time for these synchronizations
+            // synchronize attributes
+
+            if (go.isDirty) {
+
+                let attributeChangePacket = {
+                    id: MessageId.SMSG_ATTRIBUTE_SET,
+                    goId: go.id,
+                    changes: []
+                } as ServerAttributeSet;
+
+                for (let attribute of go.getDirtyAttributes()) {
+                    attributeChangePacket.changes.push({
+                        attributeId: attribute.attributeId,
+                        value: attribute.value
+                    })
+                }
+
+                go.clearDirty();
+
+                this.broadcast(attributeChangePacket);
+            }
+
+            // synchronize positions
+        }
+    }
 
     //TODO: move to worldmanager?
     onDisconnect(client: Client) {
@@ -105,27 +135,31 @@ export default class ZoneSystem extends GameSystem {
         let transform = gameObject.components.get(Transform) as Transform;
         let mobile = gameObject.components.get(Mobile) as Mobile;
 
+
         return {
             id: MessageId.SMSG_GO_ENTER_ZONE,
             goId: gameObject.id,
+
             spriteAsset: visual.spriteAsset,
             x: transform.x,
             y: transform.y,
             direction: transform.direction,
-            velocity: mobile.velocity
+            velocity: mobile.velocity,
+
+            attributes: gameObject.attributes
         } as ServerGameObjectEnterZone;
     }
 
 
     broadcast(message: Message) {
-        for (let netStateAndActor of this.netStates) {
+        for (let netStateAndActor of this.players) {
             let netState = netStateAndActor.c1;
             NetworkManager.send(netState.client, message);
         }
     }
 
     broadcastExceptSelf(source: GameObject, message: Message) {
-        for (let netStateAndActor of this.netStates) {
+        for (let netStateAndActor of this.players) {
             let netState = netStateAndActor.c1;
             if (source != netState.gameObject) {
                 NetworkManager.send(netState.client, message);
@@ -135,7 +169,7 @@ export default class ZoneSystem extends GameSystem {
 
     //this is argument for zone -> zones, since gameObject is from zone and he cant leave his domain for check who is around him
     broadcastIfVisible(source: GameObject, message: Message) {
-        for (let netStateAndActorAndTransform of this.netStates) {
+        for (let netStateAndActorAndTransform of this.players) {
             let netState = netStateAndActorAndTransform.c1;
             let transform = netStateAndActorAndTransform.c2;
             //TODO: if ( |source.transform - gameObject.transform| < causalityDistance ) {

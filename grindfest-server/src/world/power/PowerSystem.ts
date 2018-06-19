@@ -69,9 +69,12 @@ export default class PowerSystem extends GameSystem {
         }
 
         console.log("Using power", message.powerTag);
+
         powerUser.currentPower = new Slash(); //TODO: get implementation from definition
         powerUser.powerScriptIterator = null;
         powerUser.currentPowerScript = null;
+        powerUser.targetDirection = message.targetDirection;
+        //powerUser.targetGameObject = message.targetGameObjectId;
 
     }
 }

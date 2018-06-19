@@ -43,12 +43,19 @@ export default class MobileSystem extends GameSystem {
                 let tileMap = this.tileMaps[0];
 
                 // i might not have tilemap asset loaded here yet... i should not send game ready packet until i do
+                // but i don't know which zone to use, at that is packet sent after my gameready packet
 
 
-                let tileX = ((transform.worldPosition.x + x) / tileMap.asset.tilewidth) | 0;
-                let tileY = ((transform.worldPosition.y + y) / tileMap.asset.tilewidth) | 0;
-                let tileId = tileMap.asset.collisionLayer.data[tileX + tileY * tileMap.asset.collisionLayer.width];
+                let tileId;
+                if (tileMap.asset == null) {
+                    tileId = 0;
+                } else {
 
+                    let tileX = ((transform.worldPosition.x + x) / tileMap.asset.tilewidth) | 0;
+                    let tileY = ((transform.worldPosition.y + y) / tileMap.asset.tilewidth) | 0;
+                    //TODO: collisions don't work on client when map asset is not loaded
+                    tileId = tileMap.asset.collisionLayer.data[tileX + tileY * tileMap.asset.collisionLayer.width];
+                }
                 if (tileId == 0) {
 
                     transform.localPosition.x += x;

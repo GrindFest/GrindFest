@@ -2,6 +2,17 @@
 47:48:11
 
 # unsorted
+
+
+
+7dmg = 3.5 damage of hearts its now confusing you deal 7 damage, but each heart is 2 hitpoints
+
+when behind wall hide all walls bellow you
+
+precise health indicator
+
+dungeon deck necessary for creating dungeon, required cards theme card, difficulty card? monster boss card? 
+
 how much hp do players really need? something like 10*2 hearts?
 i can make some passive skill cards, like for increasing health, or for health regen even?
 light/heavy attacks?
@@ -21,6 +32,8 @@ collective healtpoints? as a modifier card?
 
 clocks, statue that walks/talks
 
+chiptune level whatever that means
+
 
 when you die you are removed from the leaderboards
 
@@ -37,15 +50,25 @@ you can create permament group/guild/clan and there will be permament progressin
 none of the progress must change gameplay in any way, otherwise permadeath would be meaningless
 
 on death your version increases
-/
+
+camera shake
+
+its more mysterious to dont know what skills do exactly
+but for power players its necessary, maybe allow them paying to see it somethow with something like inspection card?
+
+or maybe if you collect a lot of cards you will start to see monster statistics
+
+important!: nothing should survive perma death, thats what will cause player to value characters
+
 # Plan
 
+but at lest one more monitor
+https://www.alza.cz/lcd-monitory/18842948.htm#f&cst=0&pg=1&prod=1299&par237=609.6--609.6&sc=177
+https://www.alza.cz/24-samsung-c24f390fhu-d4292619.htm
+
 ### Gameplay
- * DONE tilemap support
- * DONE networking
- * DONE Attacking/Skills
- * DONE floating numbers
- * DONE client Collisions
+ * mouse movement
+ * Combat
  * sliding against collisions, or at least controllersystem should give priority to paths wher you can actually go
  * Fixing lag
  * creature ai
@@ -485,9 +508,12 @@ GameObject vs Component
 GameObject can't hold data. If GameObject has just 1 component, it's a component.
 
 
+equiped item is gameobject it can receive message and get damaged
+
+two sprites 
+
 Components
  * Transform
- * AttributeContainer
  * QuestGoer
 
 GameObject
@@ -501,4 +527,7 @@ GameObject
 Quest
 There is no quest without Hero game object, so it's not a game object
 
+
+
+what if i want to display sprite over player, i cant because sprites have layer
 

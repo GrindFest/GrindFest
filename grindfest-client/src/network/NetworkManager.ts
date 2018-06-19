@@ -25,7 +25,8 @@ export default class NetworkManager {
         NetworkManager.socket.onopen = (event) => NetworkManager.onConnected(event);
     }
 
-    //TODO: rewrite this to @messageHandler
+    //TODO: maybe this could have shortcut from gamesystem
+    //TODO: rewrite this to @messageHandler - it seems its not possible
     static registerHandler<T>(messageId: number, handler: (message: T) => void) { //TODO: this pattern is duplicated on lot of places
         let handlers = NetworkManager.handlers.get(messageId);
         if (handlers == null) {

@@ -90,13 +90,17 @@ export default class ControlsSystem extends GameSystem {
 
             if (ControllerManager.controller1ButtonAPressed) {
 
+
                 let powerUser = controllableAndMobile.c4;
                 let power = powerUser.powerSlot1;
+
+                let direction = Math.atan2(ControllerManager.controller2Stick1Direction[1],  ControllerManager.controller2Stick1Direction[0]);
 
                 // should this be in power system?
                 NetworkManager.send({
                     id: MessageId.CMSG_POWER_USE,
-                    powerTag: power.tag
+                    powerTag: power.tag,
+                    targetDirection: direction
                 } as ClientPowerUse);
 
                 if (power.type == PowerType.Use) {
@@ -168,6 +172,7 @@ export default class ControlsSystem extends GameSystem {
         mobile.velocity.x = velocity.x;
         mobile.velocity.y = velocity.y;
 
+        //TODO: change this to some better arc circle sections, or whatever its called
         let direction = Math.floor(((Math.PI + Math.atan2(mobile.velocity.y, mobile.velocity.x)) / (2 * Math.PI)) * 4);
         if (direction == 4) { //TODO: [-0.5, 0] returns 4
             direction = 0;

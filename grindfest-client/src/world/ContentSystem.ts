@@ -4,6 +4,7 @@ import GameSystem from "../infrastructure/world/GameSystem";
 import {SpriteSheetDefinition} from "../infrastructure/definitions/SpriteSheetDefinition";
 import TileMapRenderer from "./rendering/TileMapRenderer";
 import {TileMapDefinition} from "../infrastructure/definitions/TileMapDefinition";
+import HeartIndicatorRenderer from "./rendering/HeartIndicatorRenderer";
 
 interface AssetLoader<T> {
     load(assetName: string): Promise<T>;
@@ -177,6 +178,7 @@ export default class ContentSystem extends GameSystem {
         return stack.join("/");
     }
 
+    //TODO: logic in this method should be somewhere in contentmanager but called form gameobjectdatabase
     async afterGameObjectAdded(gameObject: GameObject): Promise<void> {
 
         for (let component of gameObject.components) {
@@ -206,7 +208,10 @@ export default class ContentSystem extends GameSystem {
                 let spriteSheet = await this.load(sprite.assetName);
 
                 sprite.asset = await this.processSpriteSheet(spriteSheet);
+            }else if (component instanceof HeartIndicatorRenderer) {
+                let heartIndicatorRenderer: HeartIndicatorRenderer = component;
 
+                heartIndicatorRenderer.asset = await this.load<HTMLImageElement>(heartIndicatorRenderer.assetName);
             }
         }
 

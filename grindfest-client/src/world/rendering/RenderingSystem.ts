@@ -3,13 +3,12 @@ import SpriteRenderer from "./SpriteRenderer";
 import GameSystem from "../../infrastructure/world/GameSystem";
 import Transform from "../Transform";
 import TileMapRenderer from "./TileMapRenderer";
-import GameObject from "../../infrastructure/world/GameObject";
-import {Direction, MessageId, ServerFloatingNumber} from "../../infrastructure/network/Messages";
-import Mobile from "../movement/Mobile";
+import {AttributeId, MessageId, ServerFloatingNumber} from "../../infrastructure/network/Messages";
 import NetworkManager from "../../network/NetworkManager";
 import GameObjectDatabase from "../GameObjectDatabase";
-import {FloatingTextEffect} from "./ParticleEffect";
-import {Node2} from "../../infrastructure/world/Component";
+import {FloatingTextEffect, ParticleEffect} from "./ParticleEffect";
+import {Node2, Node3} from "../../infrastructure/world/Component";
+import HeartIndicatorRenderer from "./HeartIndicatorRenderer";
 
 export default class RenderingSystem extends GameSystem {
 
@@ -17,6 +16,8 @@ export default class RenderingSystem extends GameSystem {
     tileMaps:{c1: TileMapRenderer, c2: Transform}[] = [];
     sprites: {c1: SpriteRenderer, c2:Transform}[] = [];
     floatingTexts: Node2<FloatingTextEffect, Transform>[] = [];
+    particles: Node2<ParticleEffect, Transform>[] = [];
+    heartIndicators: Node3<HeartIndicatorRenderer, Transform, SpriteRenderer>[] = [];
 
     //weathers: Array<WeatherRenderer> = new Array<WeatherRenderer>();
     //floatingTexts: Array<FloatingText> = new Array<FloatingText>();
@@ -35,6 +36,8 @@ export default class RenderingSystem extends GameSystem {
         this.registerNodeJunction2(this.sprites, SpriteRenderer, Transform);
         this.registerNodeJunction2(this.cameras, Camera, Transform);
         this.registerNodeJunction2(this.floatingTexts, FloatingTextEffect, Transform);
+        this.registerNodeJunction3(this.heartIndicators, HeartIndicatorRenderer, Transform, SpriteRenderer);
+        this.registerNodeJunction2(this.particles, ParticleEffect, Transform);
         //this.registerNodeJunction2(this.floatingNumbers, InGameText, Transform);
         //this.registerComponent(this.weathers, WeatherEffectRenderer);
         //this.registerComponent(this.floatingTexts, FloatingText);
@@ -47,7 +50,9 @@ export default class RenderingSystem extends GameSystem {
 
         let go = this.findGameObjectById(message.goId);
         let transform = go.components.get(Transform);
-        let effectGo = GameObjectDatabase.createGameObject("floatingNumber", {x: transform.worldPosition.x, y: transform.worldPosition.y, ...message});
+        let sprite = go.components.get(SpriteRenderer);
+        if (sprite.asset == null) return;
+        let effectGo = GameObjectDatabase.createGameObject("floatingNumber", {x: transform.worldPosition.x, y: transform.worldPosition.y - sprite.asset.frameWidth*3/4, ...message});
 
         this.zone.gameObjects.push(effectGo);
     }
@@ -111,7 +116,7 @@ export default class RenderingSystem extends GameSystem {
                     y: Math.min(tileMap.asset.height, ((cameraTransform.worldPosition.y + ctx.canvas.height / 2 + tileMap.asset.tileheight) / 64) | 0)
                 };
 
-                topLeft = {x:0, y:0};
+                topLeft = {x:0, y:0}; //TODO: remove
                 bottomRight = {x: tileMap.asset.width, y: tileMap.asset.height};
 
                 tileMap.drawLayers(ctx, 0, tileMap.asset.layers.length, topLeft, bottomRight);
@@ -131,30 +136,49 @@ export default class RenderingSystem extends GameSystem {
                 ctx.fillStyle = "red";
                 ctx.fillRect(0, 0, 1, 1);
 
-
-                let mobile = sprite.gameObject.components.get(Mobile);
-
-
                 sprite.draw(ctx);
 
                 ctx.restore();
             }
 
+            for (let heartIndicatorAndTransform of this.heartIndicators) {
+                let heartIndicator = heartIndicatorAndTransform.c1;
+                let transform = heartIndicatorAndTransform.c2;
+                let sprite = heartIndicatorAndTransform.c3;
+
+                if (sprite.asset == null) continue;
+
+                ctx.save();
+
+                ctx.translate(transform.worldPosition.x, transform.worldPosition.y-sprite.asset.frameHeight*3/4);
+
+                heartIndicator.draw(ctx, heartIndicator.gameObject.get(AttributeId.HitPoints), heartIndicator.gameObject.get(AttributeId.MaxHitPoints));
+
+                ctx.restore();
+            }
+
+            for (let particleEffectAndTransform of this.particles) {
+                let particleEffect = particleEffectAndTransform.c1;
+                let transform = particleEffectAndTransform.c2;
+                ctx.save();
+
+                ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
+                ctx.rotate(transform.rotation);
+                particleEffect.draw(ctx);
+                ctx.restore();
+
+            }
+
             for (let floatingTextAndTransform of this.floatingTexts) {
                 let floatingText = floatingTextAndTransform.c1;
                 let transform = floatingTextAndTransform.c2;
+                ctx.save();
 
-                let x = transform.worldPosition.x;
-                let y = transform.worldPosition.y;
+                ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
 
+                floatingText.draw(ctx, transform.scale.x);
+                ctx.restore();
 
-                //TODO: always generating these strings must be slow
-                ctx.font =  (0.3 * transform.scale.x) + "em 'Press Start 2P'";
-                ctx.strokeStyle = `rgba(1, 1, 1, ${floatingText.color.a})`;
-                ctx.lineWidth = 1;
-                ctx.strokeText(floatingText.text, x, y);
-                ctx.fillStyle = `rgba(${floatingText.color.r}, ${floatingText.color.g}, ${floatingText.color.b}, ${floatingText.color.a})`;
-                ctx.fillText(floatingText.text, x, y);
             }
 
 

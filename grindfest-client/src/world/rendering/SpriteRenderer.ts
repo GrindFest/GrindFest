@@ -81,7 +81,7 @@ export default class SpriteRenderer extends Component{
     }
 
 
-
+//maybe its not problem to have methods on components, but they can't access attributes from here or expect other components to exist
     draw(ctx: CanvasRenderingContext2D) {
 
         if (this.asset == null || this.currentAction == null) {
