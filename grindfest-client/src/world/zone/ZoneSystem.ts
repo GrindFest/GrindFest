@@ -67,7 +67,7 @@ export default class ZoneSystem extends GameSystem {
 
             //TODO: move to gameObjectDatase
             let camera = new GameObject();
-            camera.components.push(new Transform(0, 0, actor.components.get(Transform)));
+            camera.components.push(new Transform(0, -16, actor.components.get(Transform))); //TODO: weird hardcoded value based on size of player sprite
             camera.components.push(new Camera()); //TODO: camera probably shoundlt be a component as its not a behavior of something in the game domain its just a way rendering works. but how is netstate different?
 
             zone.gameObjects.push(camera)

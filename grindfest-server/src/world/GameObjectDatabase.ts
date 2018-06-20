@@ -3,7 +3,7 @@ import NetState from "./NetState";
 import Transform from "./Transform";
 import Visual from "./Visual";
 import Mobile from "./Mobile";
-import Behavior from "./behavior/Behavior";
+import Behavior, {GolemBrain} from "./behavior/Behavior";
 import PowerUser from "./power/PowerUser";
 import Combatant from "./combat/Combatant";
 import {AttributeId} from "../infrastructure/network/Messages";
@@ -36,7 +36,7 @@ export default class GameObjectDatabase {
         } else if (templateName === "golem") {
             let go = new GameObject();
             go.components.push(new Transform(definition.x, definition.y));
-            go.components.push(new Behavior());
+            go.components.push(new Behavior(new GolemBrain()));
             go.components.push(new Mobile());
             go.components.push(new PowerUser());
             go.components.push(new Combatant());

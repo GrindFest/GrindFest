@@ -10,7 +10,6 @@ import GameObjectDatabase from "../GameObjectDatabase";
 import SpriteRenderer from "./SpriteRenderer";
 
 
-
 export class ParticleSystem extends GameSystem {
 
     floatingTexts: Node2<FloatingTextEffect, Transform>[] = [];
@@ -34,7 +33,10 @@ export class ParticleSystem extends GameSystem {
         let transform = go.components.get(Transform);
         let sprite = go.components.get(SpriteRenderer);
         if (sprite.asset == null) return;
-        let effectGo = GameObjectDatabase.createGameObject("floatingNumber", {x: transform.worldPosition.x, y: transform.worldPosition.y - sprite.asset.frameHeight*1/2, ...message});
+        let effectGo = GameObjectDatabase.createGameObject("floatingNumber", {
+            x: transform.worldPosition.x,
+            y: transform.worldPosition.y - sprite.asset.frameHeight * 1 / 2, ...message //TODO: this sprite thing is weird
+        });
 
         this.zone.gameObjects.push(effectGo);
     }
@@ -49,7 +51,12 @@ export class ParticleSystem extends GameSystem {
             let x = Math.cos(message.direction) * 24;
             let y = Math.sin(message.direction) * 24;
 
-            let effect = GameObjectDatabase.createGameObject(message.effectTag, {x: transform.worldPosition.x + x, y: transform.worldPosition.y - sprite.asset.frameHeight*1/4 + y, ...message});
+            let effect = GameObjectDatabase.createGameObject(message.effectTag,
+                {
+                    x: transform.worldPosition.x + x,
+                    y: transform.worldPosition.y + y,
+                    ...message
+                });
             this.zone.gameObjects.push(effect);
         } else {
             throw "Unknown effect " + message.effectTag;

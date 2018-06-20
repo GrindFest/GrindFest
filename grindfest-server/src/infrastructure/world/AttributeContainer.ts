@@ -1,9 +1,5 @@
 import {AttributeId} from "../network/Messages";
 
-interface Attribute {
-    value: number;
-
-}
 
 // how can i move this into gameobject, client cant now anything about attribute being dirty, maybe he can though, its probably just problem of sharing code between client and server while both have different roles of how to server data to each other
 

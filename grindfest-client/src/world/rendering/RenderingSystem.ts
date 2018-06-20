@@ -11,10 +11,16 @@ import {Node2, Node3} from "../../infrastructure/world/Component";
 import HeartIndicatorRenderer from "./HeartIndicatorRenderer";
 import Mobile from "../movement/Mobile";
 
+const debugDrawCallbacks: { frames: number, callback: (ctx: CanvasRenderingContext2D) => void }[] = [];
+
+export function debugDraw(frames: number, callback: (ctx: CanvasRenderingContext2D) => void) {
+    debugDrawCallbacks.push({frames: frames, callback: callback});
+}
+
 export default class RenderingSystem extends GameSystem {
 
-    cameras: {c1: Camera, c2: Transform}[] = [];
-    tileMaps:{c1: TileMapRenderer, c2: Transform}[] = [];
+    cameras: { c1: Camera, c2: Transform }[] = [];
+    tileMaps: { c1: TileMapRenderer, c2: Transform }[] = [];
     mobileSprites: Node3<SpriteRenderer, Mobile, Transform>[] = [];
     floatingTexts: Node2<FloatingTextEffect, Transform>[] = [];
     particles: Node2<ParticleEffect, Transform>[] = [];
@@ -54,6 +60,7 @@ export default class RenderingSystem extends GameSystem {
             sprite.c1.update(delta, sprite.c2.direction);
         }
 
+        //TODO: PERF: implement fast sorting https://tbranyen.com/post/increasing-javascript-array-sorting-performance
         this.mobileSprites.sort((a, b) => {
             let transformA = a.c3;
             let transformB = b.c3;
@@ -78,7 +85,6 @@ export default class RenderingSystem extends GameSystem {
             ctx.save();
 
 
-
             // Set camera transformation and set camera to center of screen
             let x = -(cameraTransform.worldPosition.x * camera.zoom) + (ctx.canvas.width / 2);
             let y = -(cameraTransform.worldPosition.y * camera.zoom) + (ctx.canvas.height / 2);
@@ -92,7 +98,6 @@ export default class RenderingSystem extends GameSystem {
                 if (tileMap.asset == null) continue;
 
 
-
                 let topLeft = {
                     x: Math.max(0, ((cameraTransform.worldPosition.x - ctx.canvas.width / 2 - tileMap.asset.tilewidth) / 64) | 0),
                     y: Math.max(0, ((cameraTransform.worldPosition.y - ctx.canvas.height / 2 - tileMap.asset.tileheight) / 64) | 0)
@@ -102,57 +107,59 @@ export default class RenderingSystem extends GameSystem {
                     y: Math.min(tileMap.asset.height, ((cameraTransform.worldPosition.y + ctx.canvas.height / 2 + tileMap.asset.tileheight) / 64) | 0)
                 };
 
-                topLeft = {x:0, y:0}; //TODO: remove
+                topLeft = {x: 0, y: 0}; //TODO: remove
                 bottomRight = {x: tileMap.asset.width, y: tileMap.asset.height};
 
-                tileMap.drawLayers(ctx, 0, tileMap.asset.layers.length, topLeft, bottomRight);
-
-            }
+                tileMap.drawLayers(ctx, 0, tileMap.asset.spritesLayer, topLeft, bottomRight);
 
 
+                for (let spriteAndTransform of this.mobileSprites) {
+                    let sprite = spriteAndTransform.c1;
+                    let mobile = spriteAndTransform.c2;
+                    let transform = spriteAndTransform.c3;
 
-            for (let spriteAndTransform of this.mobileSprites) {
-                let sprite = spriteAndTransform.c1;
-                let mobile = spriteAndTransform.c2;
-                let transform = spriteAndTransform.c3;
+                    ctx.save();
 
-                ctx.save();
+                    ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
 
-                ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
+                    ctx.fillStyle = "red";
+                    ctx.fillRect(0, 0, 1, 1);
 
-                ctx.fillStyle = "red";
-                ctx.fillRect(0, 0, 1, 1);
+                    sprite.draw(ctx, mobile.direction);
 
-                sprite.draw(ctx, mobile.direction);
+                    ctx.restore();
+                }
 
-                ctx.restore();
-            }
+                for (let heartIndicatorAndTransform of this.heartIndicators) {
+                    let heartIndicator = heartIndicatorAndTransform.c1;
+                    let transform = heartIndicatorAndTransform.c2;
+                    let sprite = heartIndicatorAndTransform.c3;
 
-            for (let heartIndicatorAndTransform of this.heartIndicators) {
-                let heartIndicator = heartIndicatorAndTransform.c1;
-                let transform = heartIndicatorAndTransform.c2;
-                let sprite = heartIndicatorAndTransform.c3;
+                    if (sprite.asset == null) continue;
 
-                if (sprite.asset == null) continue;
+                    ctx.save();
 
-                ctx.save();
+                    ctx.translate(transform.worldPosition.x, transform.worldPosition.y - sprite.asset.frameHeight * 3 / 4);
 
-                ctx.translate(transform.worldPosition.x, transform.worldPosition.y-sprite.asset.frameHeight*3/4);
+                    heartIndicator.draw(ctx, heartIndicator.gameObject.get(AttributeId.HitPoints), heartIndicator.gameObject.get(AttributeId.MaxHitPoints));
 
-                heartIndicator.draw(ctx, heartIndicator.gameObject.get(AttributeId.HitPoints), heartIndicator.gameObject.get(AttributeId.MaxHitPoints));
+                    ctx.restore();
+                }
 
-                ctx.restore();
-            }
+                for (let particleEffectAndTransform of this.particles) {
+                    let particleEffect = particleEffectAndTransform.c1;
+                    let transform = particleEffectAndTransform.c2;
+                    ctx.save();
 
-            for (let particleEffectAndTransform of this.particles) {
-                let particleEffect = particleEffectAndTransform.c1;
-                let transform = particleEffectAndTransform.c2;
-                ctx.save();
+                    ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
+                    ctx.rotate(transform.rotation);
+                    particleEffect.draw(ctx);
+                    ctx.restore();
 
-                ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
-                ctx.rotate(transform.rotation);
-                particleEffect.draw(ctx);
-                ctx.restore();
+                }
+
+                tileMap.drawLayers(ctx, tileMap.asset.spritesLayer, tileMap.asset.layers.length, topLeft, bottomRight);
+
 
             }
 
@@ -168,11 +175,25 @@ export default class RenderingSystem extends GameSystem {
 
             }
 
+            let i = 0;
+            while (i < debugDrawCallbacks.length) {
+                let d = debugDrawCallbacks[i];
+
+                ctx.save();
+                d.callback(ctx);
+                ctx.restore();
+
+                d.frames -= 1;
+                if (d.frames <= 0) {
+                    debugDrawCallbacks.splice(i, 1);
+                }
+                i++;
+            }
+
 
             ctx.restore();
         }
     }
-
 
 
 }

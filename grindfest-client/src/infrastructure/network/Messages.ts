@@ -1,5 +1,34 @@
 import {Vector2} from "../Math";
 
+export enum AnimationTag {
+    Idle = "idle",
+    Walk = "walk",
+    Spellcast = "spellcast",
+}
+
+export enum PowerTag {
+    Slash,
+    GolemStomp,
+}
+export enum PowerAttribute {
+    Duration,
+    AnimationTag,
+    Combo0AnimationTag,
+    Combo1AnimationTag,
+    Combo2AnimationTag,
+
+    IsComboPower,
+    IsChanneled,
+
+    TargetEnemies,
+    Range,
+
+    // Slash
+    Damage,
+    SlashArc1Length,
+
+}
+
 export enum PowerType {
     Use,
     Channeling,
@@ -7,10 +36,10 @@ export enum PowerType {
 }
 
 export interface PowerDefinition {
-    tag: string;
-    type: PowerType;
-    animationTag: string;
-    duration: number;
+    tag: PowerTag;
+
+    //attributes: Map<PowerAttribute, ( attributeId: AttributeId) =>  number>;
+    attributes: any; //TODO: use map when loading is implemented?
 }
 
 export enum Direction  {
@@ -45,7 +74,7 @@ export interface ServerAttributeSet {
     }]
 }
 
-export enum AttributeId {
+export enum AttributeId { //TODO: rename to GameObjectAttributeId? and is it Id or Tag?
     HitPoints,
     MaxHitPoints,
     FireDamage,
@@ -75,14 +104,14 @@ export interface ServerFloatingNumber { //TODO: is this ServerGameObjectFloating
 export interface ServerGameObjectPlayAnimation {
     id: MessageId.SMSG_GO_PLAY_ANIMATION;
     goId: number;
-    animationTag: string;
+    animationTag: AnimationTag;
     direction: number;
     duration: number;
 }
 
 export interface ClientPowerUse {
     id: MessageId.CMSG_POWER_USE;
-    powerTag: string;
+    powerTag: PowerTag;
     targetGameObjectId?: number;
     targetDirection?: number;
 }

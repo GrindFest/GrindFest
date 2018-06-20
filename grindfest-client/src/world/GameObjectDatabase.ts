@@ -17,8 +17,6 @@ import {ParticleSystem} from "./rendering/ParticleSystem";
 export default class GameObjectDatabase {
 
 
-
-
     static createGameObject(templateName: string, definition: any): GameObject {
         let go = new GameObject();
         go.id = definition.goId;
@@ -35,22 +33,18 @@ export default class GameObjectDatabase {
             go.components.push(new HeartIndicatorRenderer());
 
         } else if (templateName == "windSlashLarge") {
-            let transform = new Transform(definition.x, definition.y);
-            transform.rotation = 1/2*Math.PI + definition.direction; //TODO: why do i have to add PI?
+            let transform = new Transform(definition.x, definition.y - 16);
+            transform.rotation = 1 / 2 * Math.PI + definition.direction; //TODO: why do i have to add PI?
             go.components.push(transform);
+            const frameTime = 100;
             let generator = (totalTime: number, emit: (particle: Particle) => void) => {
-                const frameTime = 100;
-                if (totalTime < 4*frameTime) {
+                if (totalTime < 4 * frameTime) {
                     let particle = {
                         x: -16,
                         y: -24,
                         imageIndex: Math.floor(totalTime / frameTime),
                         lifespan: frameTime
                     };
-                    if (particle.imageIndex == 4) {
-                        console.log(totalTime, frameTime);
-                        debugger;
-                    }
                     emit(particle);
                 }
 
@@ -59,8 +53,9 @@ export default class GameObjectDatabase {
             particleEffect.maxParticles = 1;
             particleEffect.bornRate = 0;
             particleEffect.generator = generator;
-            particleEffect.assetNames = ["/images/WindSlashLarge1.png","/images/WindSlashLarge2.png","/images/WindSlashLarge4.png","/images/WindSlashLarge6.png"];
+            particleEffect.assetNames = ["/images/WindSlashLarge1.png", "/images/WindSlashLarge2.png", "/images/WindSlashLarge4.png", "/images/WindSlashLarge6.png"];
             go.components.push(particleEffect);
+            go.components.push(Timer.deletingTimer(4 * frameTime));
         } else if (templateName == "map") {
 
             go.components.push(new Transform(0, 0));
@@ -69,8 +64,13 @@ export default class GameObjectDatabase {
 
         } else if (templateName == "floatingNumber") {
             go.components.push(new Transform(definition.x, definition.y));
-            go.components.push(new FloatingTextEffect(definition.value, {r: 255, g:255, b: 255, a: 1},  {x: randomRange(-0.01, 0.01), y: randomRange(-0.05, -0.04)}));
-            //floatingNumber.components.push(Timer.deletingTimer(1.5)); //TODO: how will i create this from file?
+            go.components.push(new FloatingTextEffect(definition.value, {
+                r: 255,
+                g: 255,
+                b: 255,
+                a: 1
+            }, {x: randomRange(-0.01, 0.01), y: randomRange(-0.05, -0.04)}));
+            go.components.push(Timer.deletingTimer(1500)); //TODO: how will i create this from file?
         } else {
             throw "Unknown template: " + templateName;
         }

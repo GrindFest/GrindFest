@@ -1,9 +1,13 @@
 import Component from "../../infrastructure/world/Component";
-import {SpriteSheetAction, SpriteSheetDefinition, WrapMode} from "../../infrastructure/definitions/SpriteSheetDefinition";
+import {
+    SpriteSheetAction,
+    SpriteSheetDefinition,
+    WrapMode
+} from "../../infrastructure/definitions/SpriteSheetDefinition";
 import {Direction} from "../../infrastructure/network/Messages";
 
 
-export default class SpriteRenderer extends Component{
+export default class SpriteRenderer extends Component {
 
     assetName: string;
     asset: SpriteSheetDefinition;
@@ -46,12 +50,7 @@ export default class SpriteRenderer extends Component{
 
 
     getDirection(direction: number): Direction {
-        //TODO: change this to some better arc circle sections, or whatever its called
-        let dir = Math.floor(((Math.PI + direction) / (2 * Math.PI)) * 4);
-        if (dir == 4) { //TODO: [-0.5, 0] returns 4 //TODO: use directions from current animation, then we can remove golem animations for up and down and it will be correctly computed by this
-            dir = 0;
-        }
-        return dir;
+        return Math.floor(((Math.PI + direction+1 / 4 * Math.PI) / (2 * Math.PI)) * 4) % 4;
     }
 
     update(delta: number, direction: number) {
@@ -80,7 +79,7 @@ export default class SpriteRenderer extends Component{
             } else if (action.wrapMode === WrapMode.Loop) {
                 this.currentFrame = 0;
             } else if (action.wrapMode === WrapMode.ClampForever) {
-                this.currentFrame =  animation.frames.length - 1;
+                this.currentFrame = animation.frames.length - 1;
             }
 
         }
@@ -110,7 +109,7 @@ export default class SpriteRenderer extends Component{
             x, y,
             this.asset.frameWidth, this.asset.frameHeight,
             //Destination rectangle
-            -(this.asset.frameWidth)/2, -(this.asset.frameHeight),
+            -(this.asset.frameWidth) / 2, -(this.asset.frameHeight),
             this.asset.frameWidth, this.asset.frameHeight);
     }
 }

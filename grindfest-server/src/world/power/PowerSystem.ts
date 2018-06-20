@@ -3,13 +3,14 @@ import NetworkManager from "../../NetworkManager";
 import {
     ClientPowerUse,
     MessageId,
-    PowerDefinition,
+    PowerDefinition, PowerTag,
     PowerType
 } from "../../infrastructure/network/Messages";
 import Client from "../../Client";
 import PowerUser from "./PowerUser";
 import Slash from "./implementation/Slash";
 import {SlashDefinition} from "../../infrastructure/FakeData";
+import StateMachine from "../../infrastructure/StateMachine";
 
 
 export default class PowerSystem extends GameSystem {
@@ -27,33 +28,16 @@ export default class PowerSystem extends GameSystem {
     update(dt) {
         for (let powerUser of this.powerUsers) {
             if (powerUser.currentPower != null) {
-                if (powerUser.powerScriptIterator == null) { // no action, get next
-                    powerUser.powerScriptIterator = powerUser.currentPower.execute(powerUser, powerUser.target, powerUser.targetDirection);
+                let finished = powerUser.powerStateMachine.update(dt, powerUser);
+                if (finished) {
+                    powerUser.currentPower = null;
                 }
-                if (powerUser.currentPowerScript == null) {
-                    let result = powerUser.powerScriptIterator.next();
-                    if (result.done) {
-                        powerUser.currentPower = null;
-                        powerUser.currentPowerScript = null;
-                    } else {
-                        powerUser.currentPowerScript = result.value;
-                        powerUser.currentPowerScript.start();
-                    }
-                }
-
-                if (powerUser.currentPowerScript != null) {
-                    powerUser.currentPowerScript.update(dt);
-                    if (powerUser.currentPowerScript.isFinished) {
-                        powerUser.currentPowerScript = null;
-                    }
-                }
-
             }
 
         }
     }
 
-    getPower(skillTag: string): PowerDefinition { //TODO: move somehwere else, load from file
+    getPower(powerTag: PowerTag): PowerDefinition { //TODO: move somehwere else, load from file
         return SlashDefinition
     }
 
@@ -70,9 +54,9 @@ export default class PowerSystem extends GameSystem {
 
         console.log("Using power", message.powerTag);
 
-        powerUser.currentPower = new Slash(); //TODO: get implementation from definition
-        powerUser.powerScriptIterator = null;
-        powerUser.currentPowerScript = null;
+        let implementation = new Slash(); //TODO: get implementation from definition
+        powerUser.currentPower = powerDefinition;
+        powerUser.powerStateMachine = new StateMachine<PowerUser>(implementation);
         powerUser.targetDirection = message.targetDirection;
         //powerUser.targetGameObject = message.targetGameObjectId;
 

@@ -1,10 +1,9 @@
-import {MessageId,} from "../../../infrastructure/network/Messages";
 import PowerUser from "../PowerUser";
-import {PowerScript} from "./PowerScript";
 import GameObject from "../../../infrastructure/world/GameObject";
 import {PlayAnimationPayload} from "../../EffectSystem";
+import {State} from "../../../infrastructure/StateMachine";
 
-export default class PlayAnimation extends PowerScript {
+export default class PlayAnimation extends State {
     gameObject: GameObject;
     animationTag: string;
     duration: number;

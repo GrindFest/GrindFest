@@ -3,7 +3,7 @@
 
 # unsorted
 
-
+how should movement on pc work? like in nox and uo? right click to move where mouse cursor is pointing to
 
 7dmg = 3.5 damage of hearts its now confusing you deal 7 damage, but each heart is 2 hitpoints
 
@@ -66,12 +66,14 @@ but at lest one more monitor
 https://www.alza.cz/lcd-monitory/18842948.htm#f&cst=0&pg=1&prod=1299&par237=609.6--609.6&sc=177
 https://www.alza.cz/24-samsung-c24f390fhu-d4292619.htm
 
+### Infrastructure
+ * fix the duplicate infrastructure code in client/server .gitignore seems to be ignored
+
 ### Gameplay
- * mouse movement
- * Combat
+ * creature ai
+ * combos
  * sliding against collisions, or at least controllersystem should give priority to paths wher you can actually go
  * Fixing lag
- * creature ai
  * skill/cards ui
  * zone transitions
  * Chat

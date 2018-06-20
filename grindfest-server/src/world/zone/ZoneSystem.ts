@@ -13,6 +13,7 @@ import LoginManager from "../../LoginManager";
 import GameObjectDatabase from "../GameObjectDatabase";
 import Mobile from "../Mobile";
 import {Node2, Node3} from "../../infrastructure/world/Component";
+import {arcCircleCollides, distance} from "../../infrastructure/Math";
 
 
 //TODO: how about this? interface Player implements Node2<NetState, Transform>
@@ -178,12 +179,46 @@ export default class ZoneSystem extends GameSystem {
     }
 
     * findGameObjectsInArcDirection(x: number, y: number, direction: number, length: number, radius: number, filter: (go) => boolean): IterableIterator<GameObject> {
+
+        let arcDirection = {x: Math.cos(direction), y: Math.sin(direction)};
+        let arcCenter = {x: x, y: y};
+
         for (let gameObject of this.zone.gameObjects) { //TODO: change to quad tree lookup
-            //TODO: add arc math
-            if (filter == null || filter(gameObject)) {
+
+            let transform = gameObject.components.get(Transform);
+
+            let enemyCircleRadius = 0;
+
+
+            if ((filter == null || filter(gameObject)) && arcCircleCollides(arcCenter, {
+                x: arcCenter.x + arcDirection.x,
+                y: arcCenter.y + arcDirection.y
+            }, radius, length, {x: transform.x, y: transform.y}, enemyCircleRadius)) {
                 yield gameObject;
             }
         }
 
+    }
+
+    //TODO: maybe this is something like spatial system
+    findNearestGameObject(x: number, y: number, filter: (go) => any): GameObject {
+
+        let nearestGameObject = null;
+        let minDistance = null;
+
+        for (let gameObject of this.zone.gameObjects) { //TODO: change to quad tree lookup
+            if ((filter == null || filter(gameObject))) {
+                let transform = gameObject.components.get(Transform);
+
+                let dist = distance({x: x, y: y}, transform);
+
+                if (minDistance = null || dist < minDistance) {
+                    nearestGameObject = gameObject;
+                    minDistance = dist;
+                }
+            }
+        }
+
+        return nearestGameObject;
     }
 }

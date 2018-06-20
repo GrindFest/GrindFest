@@ -3,7 +3,7 @@ import NetworkManager from "../../network/NetworkManager";
 import {
     ClientMovementRequest,
     ClientPowerUse,
-    MessageId,
+    MessageId, PowerAttribute, PowerTag,
     PowerType, ServerGameObjectPlayAnimation, ServerMobileMove
 } from "../../infrastructure/network/Messages";
 import Controllable, {Actions} from "./Controllable";
@@ -14,6 +14,7 @@ import {multiply, Vector2, length} from "../../infrastructure/Math";
 import {Node4} from "../../infrastructure/world/Component";
 import PowerUser from "../power/PowerUser";
 import SpriteRenderer from "../rendering/SpriteRenderer";
+import {debugDraw} from "../rendering/RenderingSystem";
 
 
 export default class ControlsSystem extends GameSystem {
@@ -92,21 +93,33 @@ export default class ControlsSystem extends GameSystem {
 
 
                 let powerUser = controllableAndMobile.c4;
-                let power = powerUser.powerSlot1;
+                let usedPower = powerUser.powerSlot1;
 
                 let direction = Math.atan2(ControllerManager.controller2Stick1Direction[1],  ControllerManager.controller2Stick1Direction[0]);
 
                 // should this be in power system?
                 NetworkManager.send({
                     id: MessageId.CMSG_POWER_USE,
-                    powerTag: power.tag,
+                    powerTag: usedPower,
                     targetDirection: direction
                 } as ClientPowerUse);
 
-                if (power.type == PowerType.Use) {
+                if (!powerUser.getAttribute(usedPower, PowerAttribute.IsChanneled)) {
                     // maybe not it might be just controller systems job to enque next attack even if i click before being able to do it
                     // that would mean that he would not do the movement
-                    this.startAnimation(controllable, power.animationTag, direction, power.duration);
+                    this.startAnimation(controllable, powerUser.getAttribute(usedPower, PowerAttribute.AnimationTag), direction, powerUser.getAttribute(usedPower, PowerAttribute.Duration));
+                    //TODO: i can also display effect here if i store it as powerattribute. i can even do combo attacks - and maybe i have to because there is nothing on client to know which animation to play otherwise
+
+
+                    // debugDraw(60 *1, (ctx) => {
+                    //     let transform = controllable.gameObject.components.get(Transform);
+                    //     let arcRadius = powerUser.getAttribute(PowerTag.Slash, PowerAttribute.SlashArc1Radius);
+                    //     let arcLength = powerUser.getAttribute(PowerTag.Slash, PowerAttribute.SlashArc1Length);
+                    //
+                    //     ctx.beginPath();
+                    //     ctx.arc(transform.worldPosition.x, transform.worldPosition.y-16, arcRadius, direction - arcLength/2, direction + arcLength/2);
+                    //     ctx.stroke();
+                    // });
                 }
             }
 
