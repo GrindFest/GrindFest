@@ -1,34 +1,39 @@
 
 import Component from "../../infrastructure/world/Component";
-import {PowerScript} from "./scripts/PowerScript";
-import {PowerImplementation} from "./implementation/PowerImplementation";
 import GameObject from "../../infrastructure/world/GameObject";
 import ZoneSystem from "../zone/ZoneSystem";
 import Transform from "../Transform";
 import Combatant from "../combat/Combatant";
+import {PowerAttribute, PowerDefinition, PowerTag} from "../../infrastructure/network/Messages";
+import {SlashDefinition} from "../../infrastructure/FakeData";
+import StateMachine from "../../infrastructure/StateMachine";
+
+
 
 //TODO: is there a difference between Combatant and PowerUser?
 export default class PowerUser extends Component {
-    currentPower: PowerImplementation;
-    powerScriptIterator: IterableIterator<PowerScript>;
-    currentPowerScript: PowerScript;
+    currentPower: PowerDefinition;
+    powerStateMachine: StateMachine<PowerUser>;
 
     target: GameObject;
     targetDirection: number;
     
 
-    findEnemiesInArcDirection(direction: number, length: number, radius: number): GameObject[] {
+    findEnemiesInArcDirection(offsetX: number, offsetY: number, direction: number, length: number, radius: number): GameObject[] {
         let zoneSystem = this.gameObject.zone.gameSystems.find( (gs) => gs instanceof ZoneSystem) as ZoneSystem;
 
         let transform = this.gameObject.components.get(Transform);
+        let combatant = this.gameObject.components.get(Combatant);
 
-        const enemyFilter = (go) => {
-            let combatant = go.components.get(Combatant);
-            return combatant.team != this.gameObject.components.get(Combatant).team;
-        };
-
-        return Array.from(zoneSystem.findGameObjectsInArcDirection(transform.x, transform.y, direction, length, radius, enemyFilter));
+        return Array.from(zoneSystem.findGameObjectsInArcDirection(transform.x + offsetX, transform.y + offsetY, direction, length, radius, combatant.enemyFilter));
         
         //TODO: i could store nodes everywhere and then index them by gameObject.id
+    }
+
+    getPowerAttribute(powerTag: PowerTag, powerAttribute: PowerAttribute) {
+
+        let powerDefinition = SlashDefinition; //TODO: load from somewhere by powerTag
+
+        return powerDefinition.attributes[powerAttribute](this.gameObject.get);
     }
 }

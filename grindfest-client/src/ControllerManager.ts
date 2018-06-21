@@ -1,3 +1,4 @@
+import {clamp} from "./infrastructure/Math";
 
 
 export default class ControllerManager {
@@ -9,9 +10,12 @@ export default class ControllerManager {
     static mouseButtons: number = 0;
 
     static controller1Stick1Direction: number[];
+    static controller2Stick1Direction: number[];
     static controller1ButtonA: boolean = false;
     static controller1ButtonAPressed: boolean = false;
     static lastController1ButtonA: boolean = false;
+    private static viewportWidth: number;
+    private static viewportHeight: number;
 
 
 
@@ -51,24 +55,43 @@ export default class ControllerManager {
 
 
         player1Stick2Direction = Math.atan2(
-            (ControllerManager.captured.clientHeight / 2) - ControllerManager.mouseY,
-            (ControllerManager.captured.clientWidth / 2) - ControllerManager.mouseX);
+            (ControllerManager.viewportHeight / 2) - ControllerManager.mouseY,
+            (ControllerManager.viewportWidth / 2) - ControllerManager.mouseX);
 
 
+        //TODO: accessing clientWidth/height kills performance
 
-        // if (action.keys == WSAD) {
-        let axes = [0, 0];
-        if (ControllerManager.keys["KeyD"] && ControllerManager.keys["KeyS"]) {axes[0] = 1; axes[1] = 1; }
-        else if (ControllerManager.keys["KeyW"] && ControllerManager.keys["KeyD"]) {axes[0] = 1; axes[1] = -1;}
-        else if (ControllerManager.keys["KeyS"] && ControllerManager.keys["KeyA"]) {axes[0] = -1; axes[1] = 1;}
-        else if (ControllerManager.keys["KeyA"] && ControllerManager.keys["KeyW"]) {axes[0] = -1; axes[1] = -1;}
-        else if (ControllerManager.keys["KeyD"]) {axes[0] = 1; axes[1] = 0}
-        else if (ControllerManager.keys["KeyS"]) {axes[0] = 0; axes[1] = 1}
-        else if (ControllerManager.keys["KeyA"]) {axes[0] = -1; axes[1] = 0}
-        else if (ControllerManager.keys["KeyW"]) {axes[0] = 0; axes[1] = -1}
+        {
+            ControllerManager.controller2Stick1Direction = [
+                    clamp(((ControllerManager.mouseX - (ControllerManager.viewportWidth / 2)) / ControllerManager.viewportWidth) * 5, -1, 1),
+                    clamp(((ControllerManager.mouseY - (ControllerManager.viewportHeight / 2)) / ControllerManager.viewportHeight) * 5, -1, 1)];
+
+        }
+
+        {
+            //if (actions.keys == Mouse)
+            // if (ControllerManager.mouseButtons == 2) {
+            //     axes = [
+            //         clamp(((ControllerManager.mouseX - (ControllerManager.captured.clientWidth / 2)) / ControllerManager.captured.clientWidth) * 5, -1, 1),
+            //         clamp(((ControllerManager.mouseY - (ControllerManager.captured.clientHeight / 2)) / ControllerManager.captured.clientHeight) * 5, -1, 1)];
+            // }
+        }
+
+        {
+            // if (action.keys == WSAD) {
+            let axes = [0, 0];
+            if (ControllerManager.keys["KeyD"] && ControllerManager.keys["KeyS"]) {axes[0] = 1; axes[1] = 1; }
+            else if (ControllerManager.keys["KeyW"] && ControllerManager.keys["KeyD"]) {axes[0] = 1; axes[1] = -1;}
+            else if (ControllerManager.keys["KeyS"] && ControllerManager.keys["KeyA"]) {axes[0] = -1; axes[1] = 1;}
+            else if (ControllerManager.keys["KeyA"] && ControllerManager.keys["KeyW"]) {axes[0] = -1; axes[1] = -1;}
+            else if (ControllerManager.keys["KeyD"]) {axes[0] = 1; axes[1] = 0}
+            else if (ControllerManager.keys["KeyS"]) {axes[0] = 0; axes[1] = 1}
+            else if (ControllerManager.keys["KeyA"]) {axes[0] = -1; axes[1] = 0}
+            else if (ControllerManager.keys["KeyW"]) {axes[0] = 0; axes[1] = -1}
+            ControllerManager.controller1Stick1Direction = axes;
+        }
 
 
-        ControllerManager.controller1Stick1Direction = axes;
         //  }
     }
 
@@ -80,6 +103,15 @@ export default class ControllerManager {
 
     static capture(element: HTMLElement) {
         this.captured = element;
+
+        //TODO: if there will be option to change the resolution, this won't work
+        this.viewportWidth = this.captured.clientWidth;
+        this.viewportHeight = this.captured.clientHeight;
+
+        element.oncontextmenu = (e) => {
+            return false;
+        };
+
         element.onkeydown = (e) => {
             ControllerManager.keys[e.code] = true;
         };

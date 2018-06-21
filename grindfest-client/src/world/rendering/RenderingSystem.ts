@@ -3,20 +3,28 @@ import SpriteRenderer from "./SpriteRenderer";
 import GameSystem from "../../infrastructure/world/GameSystem";
 import Transform from "../Transform";
 import TileMapRenderer from "./TileMapRenderer";
-import GameObject from "../../infrastructure/world/GameObject";
-import {Direction, MessageId, ServerFloatingNumber} from "../../infrastructure/network/Messages";
-import Mobile from "../movement/Mobile";
+import {AttributeId, MessageId, ServerFloatingNumber} from "../../infrastructure/network/Messages";
 import NetworkManager from "../../network/NetworkManager";
 import GameObjectDatabase from "../GameObjectDatabase";
-import {FloatingTextEffect} from "./ParticleEffect";
-import {Node2} from "../../infrastructure/world/Component";
+import {FloatingTextEffect, ParticleEffect} from "./ParticleEffect";
+import {Node2, Node3} from "../../infrastructure/world/Component";
+import HeartIndicatorRenderer from "./HeartIndicatorRenderer";
+import Mobile from "../movement/Mobile";
+
+const debugDrawCallbacks: { frames: number, callback: (ctx: CanvasRenderingContext2D) => void }[] = [];
+
+export function debugDraw(frames: number, callback: (ctx: CanvasRenderingContext2D) => void) {
+    debugDrawCallbacks.push({frames: frames, callback: callback});
+}
 
 export default class RenderingSystem extends GameSystem {
 
-    cameras: {c1: Camera, c2: Transform}[] = [];
-    tileMaps:{c1: TileMapRenderer, c2: Transform}[] = [];
-    sprites: {c1: SpriteRenderer, c2:Transform}[] = [];
+    cameras: { c1: Camera, c2: Transform }[] = [];
+    tileMaps: { c1: TileMapRenderer, c2: Transform }[] = [];
+    mobileSprites: Node3<SpriteRenderer, Mobile, Transform>[] = [];
     floatingTexts: Node2<FloatingTextEffect, Transform>[] = [];
+    particles: Node2<ParticleEffect, Transform>[] = [];
+    heartIndicators: Node3<HeartIndicatorRenderer, Transform, SpriteRenderer>[] = [];
 
     //weathers: Array<WeatherRenderer> = new Array<WeatherRenderer>();
     //floatingTexts: Array<FloatingText> = new Array<FloatingText>();
@@ -32,40 +40,30 @@ export default class RenderingSystem extends GameSystem {
 
         // We register all components that we need, and they will be added to these arrays, as gameobjects are added to world
         this.registerNodeJunction2(this.tileMaps, TileMapRenderer, Transform);
-        this.registerNodeJunction2(this.sprites, SpriteRenderer, Transform);
+        this.registerNodeJunction3(this.mobileSprites, SpriteRenderer, Mobile, Transform);
         this.registerNodeJunction2(this.cameras, Camera, Transform);
         this.registerNodeJunction2(this.floatingTexts, FloatingTextEffect, Transform);
+        this.registerNodeJunction3(this.heartIndicators, HeartIndicatorRenderer, Transform, SpriteRenderer);
+        this.registerNodeJunction2(this.particles, ParticleEffect, Transform);
         //this.registerNodeJunction2(this.floatingNumbers, InGameText, Transform);
         //this.registerComponent(this.weathers, WeatherEffectRenderer);
         //this.registerComponent(this.floatingTexts, FloatingText);
-
-        NetworkManager.registerHandler(MessageId.SMSG_FLOATING_NUMBER, this.onFloatingNumber.bind(this));
-
     }
-
-    onFloatingNumber(message: ServerFloatingNumber) {
-
-        let go = this.findGameObjectById(message.goId);
-        let transform = go.components.get(Transform);
-        let effectGo = GameObjectDatabase.createGameObject("floatingNumber", {x: transform.worldPosition.x, y: transform.worldPosition.y, ...message});
-
-        this.zone.gameObjects.push(effectGo);
-    }
-
 
     update(delta: number) {
         for (let camera of this.cameras) {
             camera.c1.viewport = {width: this.context.canvas.width, height: this.context.canvas.height}
         }
 
-        for (let sprite of this.sprites) {
+        for (let sprite of this.mobileSprites) {
 
-            sprite.c1.update(delta);
+            sprite.c1.update(delta, sprite.c2.direction);
         }
 
-        this.sprites.sort((a, b) => {
-            let transformA = a.c2;
-            let transformB = b.c2;
+        //TODO: PERF: implement fast sorting https://tbranyen.com/post/increasing-javascript-array-sorting-performance
+        this.mobileSprites.sort((a, b) => {
+            let transformA = a.c3;
+            let transformB = b.c3;
             return transformA.localPosition.y - transformB.localPosition.y;
         });
 
@@ -87,7 +85,6 @@ export default class RenderingSystem extends GameSystem {
             ctx.save();
 
 
-
             // Set camera transformation and set camera to center of screen
             let x = -(cameraTransform.worldPosition.x * camera.zoom) + (ctx.canvas.width / 2);
             let y = -(cameraTransform.worldPosition.y * camera.zoom) + (ctx.canvas.height / 2);
@@ -101,7 +98,6 @@ export default class RenderingSystem extends GameSystem {
                 if (tileMap.asset == null) continue;
 
 
-
                 let topLeft = {
                     x: Math.max(0, ((cameraTransform.worldPosition.x - ctx.canvas.width / 2 - tileMap.asset.tilewidth) / 64) | 0),
                     y: Math.max(0, ((cameraTransform.worldPosition.y - ctx.canvas.height / 2 - tileMap.asset.tileheight) / 64) | 0)
@@ -111,57 +107,93 @@ export default class RenderingSystem extends GameSystem {
                     y: Math.min(tileMap.asset.height, ((cameraTransform.worldPosition.y + ctx.canvas.height / 2 + tileMap.asset.tileheight) / 64) | 0)
                 };
 
-                topLeft = {x:0, y:0};
+                topLeft = {x: 0, y: 0}; //TODO: remove
                 bottomRight = {x: tileMap.asset.width, y: tileMap.asset.height};
 
-                tileMap.drawLayers(ctx, 0, tileMap.asset.layers.length, topLeft, bottomRight);
-
-            }
+                tileMap.drawLayers(ctx, 0, tileMap.asset.spritesLayer, topLeft, bottomRight);
 
 
+                for (let spriteAndTransform of this.mobileSprites) {
+                    let sprite = spriteAndTransform.c1;
+                    let mobile = spriteAndTransform.c2;
+                    let transform = spriteAndTransform.c3;
 
-            for (let spriteAndTransform of this.sprites) {
-                let sprite = spriteAndTransform.c1;
-                let transform = spriteAndTransform.c2;
+                    ctx.save();
 
-                ctx.save();
+                    ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
 
-                ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
+                    ctx.fillStyle = "red";
+                    ctx.fillRect(0, 0, 1, 1);
 
-                ctx.fillStyle = "red";
-                ctx.fillRect(0, 0, 1, 1);
+                    sprite.draw(ctx, mobile.direction);
+
+                    ctx.restore();
+                }
+
+                for (let heartIndicatorAndTransform of this.heartIndicators) {
+                    let heartIndicator = heartIndicatorAndTransform.c1;
+                    let transform = heartIndicatorAndTransform.c2;
+                    let sprite = heartIndicatorAndTransform.c3;
+
+                    if (sprite.asset == null) continue;
+
+                    ctx.save();
+
+                    ctx.translate(transform.worldPosition.x, transform.worldPosition.y - sprite.asset.frameHeight * 3 / 4);
+
+                    heartIndicator.draw(ctx, heartIndicator.gameObject.get(AttributeId.HitPoints), heartIndicator.gameObject.get(AttributeId.MaxHitPoints));
+
+                    ctx.restore();
+                }
+
+                for (let particleEffectAndTransform of this.particles) {
+                    let particleEffect = particleEffectAndTransform.c1;
+                    let transform = particleEffectAndTransform.c2;
+                    ctx.save();
+
+                    ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
+                    ctx.rotate(transform.rotation);
+                    particleEffect.draw(ctx);
+                    ctx.restore();
+
+                }
+
+                tileMap.drawLayers(ctx, tileMap.asset.spritesLayer, tileMap.asset.layers.length, topLeft, bottomRight);
 
 
-                let mobile = sprite.gameObject.components.get(Mobile);
-
-
-                sprite.draw(ctx);
-
-                ctx.restore();
             }
 
             for (let floatingTextAndTransform of this.floatingTexts) {
                 let floatingText = floatingTextAndTransform.c1;
                 let transform = floatingTextAndTransform.c2;
+                ctx.save();
 
-                let x = transform.worldPosition.x;
-                let y = transform.worldPosition.y;
+                ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
 
+                floatingText.draw(ctx, transform.scale.x);
+                ctx.restore();
 
-                //TODO: always generating these strings must be slow
-                ctx.font =  (0.3 * transform.scale.x) + "em 'Press Start 2P'";
-                ctx.strokeStyle = `rgba(1, 1, 1, ${floatingText.color.a})`;
-                ctx.lineWidth = 1;
-                ctx.strokeText(floatingText.text, x, y);
-                ctx.fillStyle = `rgba(${floatingText.color.r}, ${floatingText.color.g}, ${floatingText.color.b}, ${floatingText.color.a})`;
-                ctx.fillText(floatingText.text, x, y);
+            }
+
+            let i = 0;
+            while (i < debugDrawCallbacks.length) {
+                let d = debugDrawCallbacks[i];
+
+                ctx.save();
+                d.callback(ctx);
+                ctx.restore();
+
+                d.frames -= 1;
+                if (d.frames <= 0) {
+                    debugDrawCallbacks.splice(i, 1);
+                }
+                i++;
             }
 
 
             ctx.restore();
         }
     }
-
 
 
 }

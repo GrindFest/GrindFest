@@ -3,9 +3,15 @@ import ZoneSystem from "../zone/ZoneSystem";
 import GameSystem from "../../infrastructure/world/GameSystem";
 import AttackPayload from "./AttackPayload";
 import DamagePayload from "./DamagePayload";
-import Component from "../../infrastructure/world/Component";
 import {AttributeId, FloatingNumberType, MessageId, ServerFloatingNumber} from "../../infrastructure/network/Messages";
-import AttributeContainer from "../attributes/AttributeContainer";
+import GameObjectDatabase from "../GameObjectDatabase";
+
+
+// instant attack and projectile are different because instant attack are instant
+
+class DeathPayload {
+
+}
 
 export class CombatSystem extends GameSystem {
 
@@ -17,32 +23,53 @@ export class CombatSystem extends GameSystem {
         super();
 
         this.registerPayloadHandler(AttackPayload, this.onAttack.bind(this));
+        this.registerPayloadHandler(DamagePayload, this.onDamage.bind(this));
+        this.registerPayloadHandler(DeathPayload, this.onDeath.bind(this));
+    }
+
+    onDeath(gameObject: GameObject, payload: DeathPayload) {
+
+        //TODO: death animation, something like decaytimer
+        this.zone.gameObjects.remove(gameObject);
+
+        //TODO: debug only, spawn new golem
+        this.zone.gameObjects.push(GameObjectDatabase.createGameObject("golem", {zoneId: 1, x: 3*16, y:3*16}));
+    }
+
+    onDamage(gameObject: GameObject, payload: DamagePayload) {
+
+
+
+        //TODO: something like indexer, so this code isn't ugly
+        gameObject.set(AttributeId.HitPoints, Math.max(0, gameObject.get(AttributeId.HitPoints) - payload.damage));
+
+        this.zoneSystem.broadcast({
+            id: MessageId.SMSG_FLOATING_NUMBER,
+            goId: gameObject.id,
+            value: payload.damage,
+            type: FloatingNumberType.White
+        } as ServerFloatingNumber);
+
+        if (gameObject.get(AttributeId.HitPoints) == 0) {
+            // Die
+
+            gameObject.sendMessage(new DeathPayload());
+
+        }
+
+
     }
 
     onAttack(gameObject: GameObject, payload: AttackPayload) {
 
 
-        console.log("attacking " + payload.targets.length + " for " + payload.damage)
-
-
         for (let target of payload.targets) {
             //target.sendMessage(new DamagePayload()) //TODO: move this into onDamage
 
-            let attributes = target.components.get(AttributeContainer);
             let totalDamage = payload.damage;
 
-            //TODO: something like indexer, so this code isn't ugly
-            // attributes[AttributeId.HitPoints] = Math.max(0, attributes[AttributeId.HitPoints] - totalDamage);
-
-            this.zoneSystem.broadcast({
-                id: MessageId.SMSG_FLOATING_NUMBER,
-                goId: target.id,
-                value: totalDamage,
-                type: FloatingNumberType.White
-            } as ServerFloatingNumber);
+            target.sendMessage(new DamagePayload(totalDamage));
 
         }
-
-
     }
 }

@@ -1,6 +1,7 @@
 import GameSystem from "../../infrastructure/world/GameSystem";
 import {
-    MessageId, ServerGameObjectEnterZone,
+    AttributeId,
+    MessageId, ServerAttributeSet, ServerGameObjectEnterZone,
     ServerGameObjectLeaveZone,
     ServerHeroEnterZone
 } from "../../infrastructure/network/Messages";
@@ -30,13 +31,23 @@ export default class ZoneSystem extends GameSystem {
         NetworkManager.registerHandler(MessageId.SMSG_GO_ENTER_ZONE, this.onActorEnterZone.bind(this));
         NetworkManager.registerHandler(MessageId.SMSG_GO_LEAVE_ZONE, this.onActorLeaveZone.bind(this));
         NetworkManager.registerHandler(MessageId.SMSG_HERO_ENTER_ZONE, this.onHeroEnterZone.bind(this));
+        NetworkManager.registerHandler(MessageId.SMSG_ATTRIBUTE_SET, this.onAttributeSet.bind(this));
+
+    }
+
+    onAttributeSet(message: ServerAttributeSet) {
+        let go = this.findGameObjectById(message.goId);
+
+        for (let change of message.changes) {
+            go.set(change.attributeId, change.value); //TODO: should some interpolation happen here? based on attributetemplate[attributeid].interpolation
+        }
 
     }
 
 
 
     onActorLeaveZone(message: ServerGameObjectLeaveZone) {
-        let go = this.findGameObjectById(message.goId)
+        let go = this.findGameObjectById(message.goId);
         this.zone.gameObjects.remove(go);
     }
 
@@ -51,6 +62,18 @@ export default class ZoneSystem extends GameSystem {
         if (message.goId == this.myGameObjectId) {
             actor.components.get(Controllable).isLocal = true;
         }
+
+        if (message.goId == this.myGameObjectId) { // If this is me attach camera to me
+
+            //TODO: move to gameObjectDatase
+            let camera = new GameObject();
+            camera.components.push(new Transform(0, -16, actor.components.get(Transform))); //TODO: weird hardcoded value based on size of player sprite
+            camera.components.push(new Camera()); //TODO: camera probably shoundlt be a component as its not a behavior of something in the game domain its just a way rendering works. but how is netstate different?
+
+            zone.gameObjects.push(camera)
+
+        }
+
         zone.gameObjects.push(actor);
 
 
@@ -61,14 +84,6 @@ export default class ZoneSystem extends GameSystem {
             controlSystem.startMoving(actor.components.get(Controllable), message.velocity);
         }
 
-        if (message.goId == this.myGameObjectId) { // If this is me attach camera to me
-
-            let camera = new GameObject();
-            camera.components.push(new Transform(0, 0, actor.components.get(Transform)));
-            camera.components.push(new Camera()); //TODO: camera probably shoundlt be a component as its not a behavior of something in the game domain its just a way rendering works. but how is netstate different?
-
-            zone.gameObjects.push(camera);
-        }
     }
 
     onHeroEnterZone(message: ServerHeroEnterZone) {

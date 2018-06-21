@@ -1,9 +1,13 @@
 import Component from "../../infrastructure/world/Component";
-import {SpriteSheetAction, SpriteSheetDefinition, WrapMode} from "../../infrastructure/definitions/SpriteSheetDefinition";
+import {
+    SpriteSheetAction,
+    SpriteSheetDefinition,
+    WrapMode
+} from "../../infrastructure/definitions/SpriteSheetDefinition";
 import {Direction} from "../../infrastructure/network/Messages";
 
 
-export default class SpriteRenderer extends Component{
+export default class SpriteRenderer extends Component {
 
     assetName: string;
     asset: SpriteSheetDefinition;
@@ -21,7 +25,6 @@ export default class SpriteRenderer extends Component{
     currentAction: string;
 
     duration: number;
-    direction: Direction = Direction.Down;
 
     // @assetName name of sprite to load
     constructor(assetName: string) {
@@ -36,19 +39,21 @@ export default class SpriteRenderer extends Component{
     //     }
     // }
 
-    playAction(actionName: string, duration: number, direction: Direction = this.direction) {
+    playAction(actionName: string, duration: number) {
 
         // Reset frame
         this.currentFrame = 0;
         this.currentAction = actionName;
         this.currentFrameTime = 0;
         this.duration = duration;
-        this.direction = direction;
     }
 
 
+    getDirection(direction: number): Direction {
+        return Math.floor(((Math.PI + direction+1 / 4 * Math.PI) / (2 * Math.PI)) * 4) % 4;
+    }
 
-    update(delta: number) {
+    update(delta: number, direction: number) {
 
         if (this.asset == null || this.currentAction == null) {
             return;
@@ -58,7 +63,7 @@ export default class SpriteRenderer extends Component{
         this.currentFrameTime += delta; //delta.elapsedGameTime;
 
 
-        let animation = action.animationsByDirection.get(this.direction);
+        let animation = action.animationsByDirection.get(this.getDirection(direction));
 
         let frameDuration = this.duration / animation.frames.length;
         while (this.currentFrameTime >= frameDuration) {
@@ -74,22 +79,23 @@ export default class SpriteRenderer extends Component{
             } else if (action.wrapMode === WrapMode.Loop) {
                 this.currentFrame = 0;
             } else if (action.wrapMode === WrapMode.ClampForever) {
-                this.currentFrame =  animation.frames.length - 1;
+                this.currentFrame = animation.frames.length - 1;
             }
 
         }
     }
 
 
-
-    draw(ctx: CanvasRenderingContext2D) {
+//maybe its not problem to have methods on components, but they can't access attributes from here or expect other components to exist
+    draw(ctx: CanvasRenderingContext2D, direction: number) {
 
         if (this.asset == null || this.currentAction == null) {
             return;
         }
+
         let action = this.asset.actionsByName.get(this.currentAction);
 
-        let animation = action.animationsByDirection.get(this.direction);
+        let animation = action.animationsByDirection.get(this.getDirection(direction));
         let thisFrame = animation.frames[this.currentFrame];
 
         let x = (thisFrame) % (this.asset.imageAsset.width / this.asset.frameWidth);
@@ -103,7 +109,7 @@ export default class SpriteRenderer extends Component{
             x, y,
             this.asset.frameWidth, this.asset.frameHeight,
             //Destination rectangle
-            -(this.asset.frameWidth)/2, -(this.asset.frameHeight),
+            -(this.asset.frameWidth) / 2, -(this.asset.frameHeight),
             this.asset.frameWidth, this.asset.frameHeight);
     }
 }

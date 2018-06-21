@@ -11,6 +11,7 @@ export default class Transform extends Component {
 
     parent: Transform = null;
 
+    rotation: number = 0;
 
 
     get worldPosition(): Vector2 {

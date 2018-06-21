@@ -1,5 +1,34 @@
 import {Vector2} from "../Math";
 
+export enum AnimationTag {
+    Idle = "idle",
+    Walk = "walk",
+    Spellcast = "spellcast",
+}
+
+export enum PowerTag {
+    Slash,
+    GolemStomp,
+}
+export enum PowerAttribute {
+    Duration,
+    AnimationTag,
+    Combo0AnimationTag,
+    Combo1AnimationTag,
+    Combo2AnimationTag,
+
+    IsComboPower,
+    IsChanneled,
+
+    TargetEnemies,
+    Range,
+
+    // Slash
+    Damage,
+    SlashArc1Length,
+
+}
+
 export enum PowerType {
     Use,
     Channeling,
@@ -7,10 +36,10 @@ export enum PowerType {
 }
 
 export interface PowerDefinition {
-    tag: string;
-    type: PowerType;
-    animationTag: string;
-    duration: number;
+    tag: PowerTag;
+
+    //attributes: Map<PowerAttribute, ( attributeId: AttributeId) =>  number>;
+    attributes: any; //TODO: use map when loading is implemented?
 }
 
 export enum Direction  {
@@ -31,10 +60,23 @@ export enum MessageId {
     CMSG_POWER_USE = 9,
     SMSG_GO_PLAY_ANIMATION = 10,
     SMSG_FLOATING_NUMBER = 11,
+    SMSG_ATTRIBUTE_SET = 12,
+    SMSG_GO_PLAY_EFFECT = 13,
 }
 
-export enum AttributeId {
+
+export interface ServerAttributeSet {
+    id: MessageId.SMSG_ATTRIBUTE_SET,
+    goId: number;
+    changes: [{
+        attributeId: AttributeId;
+        value: number;
+    }]
+}
+
+export enum AttributeId { //TODO: rename to GameObjectAttributeId? and is it Id or Tag?
     HitPoints,
+    MaxHitPoints,
     FireDamage,
     FireResist,
 }
@@ -45,7 +87,14 @@ export enum FloatingNumberType {
     RedCritical,
 }
 
-export interface ServerFloatingNumber {
+export interface ServerGameObjectPlayEffect {
+    id: MessageId.SMSG_GO_PLAY_EFFECT;
+    goId: number;
+    effectTag: string;
+    direction: number;
+}
+
+export interface ServerFloatingNumber { //TODO: is this ServerGameObjectFloatingNumber?
     id: MessageId.SMSG_FLOATING_NUMBER;
     goId: number;
     value: number;
@@ -55,13 +104,14 @@ export interface ServerFloatingNumber {
 export interface ServerGameObjectPlayAnimation {
     id: MessageId.SMSG_GO_PLAY_ANIMATION;
     goId: number;
-    animationTag: string;
+    animationTag: AnimationTag;
+    direction: number;
     duration: number;
 }
 
 export interface ClientPowerUse {
     id: MessageId.CMSG_POWER_USE;
-    powerTag: string;
+    powerTag: PowerTag;
     targetGameObjectId?: number;
     targetDirection?: number;
 }
@@ -103,10 +153,14 @@ export interface ServerGameObjectLeaveZone extends Message {
 export interface ServerGameObjectEnterZone extends Message {
     id: MessageId.SMSG_GO_ENTER_ZONE;
     goId: number;
+
+    //TODO: are all of these attributes?
     x: number;
     y: number;
     spriteAsset: string;
     velocity: Vector2;
+
+    attributes: {attributeId: AttributeId, value: number}[]
 }
 
 
