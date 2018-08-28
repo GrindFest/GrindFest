@@ -1,4 +1,4 @@
-import {LayerDefinition} from "./LayerDefinition";
+import {LayerDefinition, TileLayerDefinition} from "./LayerDefinition";
 import {TilesetDefinition} from "./TilesetDefinition";
 
 
@@ -10,7 +10,4 @@ export interface TileMapDefinition {
     layers: LayerDefinition[];
     
     tilesets: TilesetDefinition[];
-
-    spritesLayer: number;
-    collisionLayer: LayerDefinition;
 }

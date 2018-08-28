@@ -1,71 +1,24 @@
 import Component from "../../infrastructure/world/Component";
-import {distance, Vector2} from "../../infrastructure/Math";
-import {PowerAttribute, PowerTag} from "../../infrastructure/network/Messages";
+import {distance, multiply, normalize, subtract, Vector2} from "../../infrastructure/Math";
+import {AttributeId, PowerAttribute, PowerTag} from "../../infrastructure/network/Messages";
 import GameObject from "../../infrastructure/world/GameObject";
 import {
     State,
-    StateGenerator,
     default as StateMachine, WaitState
 } from "../../infrastructure/StateMachine";
 import ZoneSystem from "../zone/ZoneSystem";
 import Transform from "../Transform";
 import PowerUser from "../power/PowerUser";
 import Combatant from "../combat/Combatant";
-
-class UsePowerState extends State {
-    constructor(behavior: Behavior, powerTag: PowerTag) {
-        super();
-    }
-
-    start() {
-    }
-
-    update(dt: number) {
-    }
-
-}
-
-class MoveToState extends State {
-    constructor(behavior: Behavior, goalObject: GameObject) {
-        super();
-    }
-
-    start() {
-    }
-
-    update(dt: number) {
-    }
-
-}
-
-abstract class AIBrain implements StateGenerator<Behavior> { //TODO: rename brain to something more normal
+import Mobile from "../Mobile";
+import {UsePowerState} from "./UsePowerState";
+import {Brain} from "./Brain";
+import {MoveNearState} from "./MoveNearState";
 
 
-    abstract execute(context: any);
-}
-
-export class GolemBrain extends AIBrain {
 
 
-    currentTarget: GameObject;
 
-    * execute(behavior: Behavior) {
-        if (this.currentTarget == null) {
-            let enemy = behavior.findNearestEnemy();
-            if (enemy == null) {
-                yield behavior.sleep(1000);
-            } else {
-                this.currentTarget = enemy;
-            }
-        } else {
-            if (behavior.distance(this.currentTarget) < behavior.getPowerAttribute(PowerTag.GolemStomp, PowerAttribute.Range)) {
-                yield behavior.usePower(PowerTag.GolemStomp)
-            } else {
-                yield behavior.moveTo(this.currentTarget)
-            }
-        }
-    }
-}
 
 // class HealerBehavior {
 //
@@ -82,16 +35,17 @@ export class GolemBrain extends AIBrain {
 
 export default class Behavior extends Component {
 
-    brain: AIBrain;
     stateMachine: StateMachine<Behavior>;
 
+    knownGameObjects: number[]; //TODO: remove on idle?
 
-    findNearestEnemy(): GameObject {
+
+    findNearestEnemy(range: number): GameObject {
         let zoneSystem = this.gameObject.zone.gameSystems.find((gs) => gs instanceof ZoneSystem) as ZoneSystem;
         let transform = this.gameObject.components.get(Transform);
         let combatant = this.gameObject.components.get(Combatant);
 
-        return zoneSystem.findNearestGameObject(transform.x, transform.y, combatant.enemyFilter)
+        return zoneSystem.findNearestGameObject(transform.x, transform.y, range, combatant.enemyFilter)
     }
 
     distance(enemy: GameObject): number {
@@ -106,18 +60,16 @@ export default class Behavior extends Component {
         return new UsePowerState(this, powerTag);
     }
 
-    moveTo(goalObject: GameObject) {
-        return new MoveToState(this, goalObject);
+    moveNear(goalObject: GameObject, range: number) {
+        return new MoveNearState(this, goalObject, range);
     }
 
     sleep(time: number) {
         return new WaitState(time);
     }
 
-    constructor(brain: AIBrain) {
+    constructor(brain: Brain) {
         super();
-        this.brain = brain;
-
         this.stateMachine = new StateMachine(brain);
     }
 

@@ -51,7 +51,7 @@ export enum Direction  {
 export enum MessageId {
     CMSG_LOGIN_REQUEST = 1,
     SMSG_LOGIN_RESPONSE = 2,
-    SMSG_HERO_ENTER_ZONE = 3,
+    SMSG_ENTER_ZONE = 3, //TODO: should this be called change zone?
     SMSG_GO_ENTER_ZONE = 4,
     SMSG_MOBILE_MOVE = 5,
     CMSG_GAME_READY = 6,
@@ -74,11 +74,13 @@ export interface ServerAttributeSet {
     }]
 }
 
-export enum AttributeId { //TODO: rename to GameObjectAttributeId? and is it Id or Tag?
+export enum AttributeId {
+    //TODO: rename to GameObjectAttributeId? and is it Id or Tag?
     HitPoints,
     MaxHitPoints,
     FireDamage,
     FireResist,
+    MovementSpeed,
 }
 
 export enum FloatingNumberType {
@@ -138,11 +140,10 @@ export interface ClientGameReady extends Message {
     id: MessageId.CMSG_GAME_READY;
 }
 
-export interface ServerHeroEnterZone extends Message {
-    id: MessageId.SMSG_HERO_ENTER_ZONE;
+export interface ServerEnterZone extends Message {
+    id: MessageId.SMSG_ENTER_ZONE;
     zoneTag: string;
     //zoneType: ZoneType; // Preset | Generated
-    myGameObjectId: number;
 }
 
 export interface ServerGameObjectLeaveZone extends Message {
@@ -159,6 +160,8 @@ export interface ServerGameObjectEnterZone extends Message {
     y: number;
     spriteAsset: string;
     velocity: Vector2;
+
+    isYou?: boolean;
 
     attributes: {attributeId: AttributeId, value: number}[]
 }

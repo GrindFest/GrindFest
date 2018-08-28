@@ -21,8 +21,8 @@ export class ParticleSystem extends GameSystem {
         this.registerNodeJunction2(this.floatingTexts, FloatingTextEffect, Transform);
         this.registerNodeJunction2(this.particles, ParticleEffect, Transform);
 
-        NetworkManager.registerHandler(MessageId.SMSG_GO_PLAY_EFFECT, this.onPlayEffect.bind(this));
-        NetworkManager.registerHandler(MessageId.SMSG_FLOATING_NUMBER, this.onFloatingNumber.bind(this));
+        NetworkManager.instance.registerHandler(MessageId.SMSG_GO_PLAY_EFFECT, this.onPlayEffect.bind(this));
+        NetworkManager.instance.registerHandler(MessageId.SMSG_FLOATING_NUMBER, this.onFloatingNumber.bind(this));
 
     }
 
@@ -33,7 +33,7 @@ export class ParticleSystem extends GameSystem {
         let transform = go.components.get(Transform);
         let sprite = go.components.get(SpriteRenderer);
         if (sprite.asset == null) return;
-        let effectGo = GameObjectDatabase.createGameObject("floatingNumber", {
+        let effectGo = GameObjectDatabase.instance.createGameObject("floatingNumber", {
             x: transform.worldPosition.x,
             y: transform.worldPosition.y - sprite.asset.frameHeight * 1 / 2, ...message //TODO: this sprite thing is weird
         });
@@ -51,7 +51,7 @@ export class ParticleSystem extends GameSystem {
             let x = Math.cos(message.direction) * 24;
             let y = Math.sin(message.direction) * 24;
 
-            let effect = GameObjectDatabase.createGameObject(message.effectTag,
+            let effect = GameObjectDatabase.instance.createGameObject(message.effectTag,
                 {
                     x: transform.worldPosition.x + x,
                     y: transform.worldPosition.y + y,

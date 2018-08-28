@@ -6,8 +6,12 @@ import {AttributeId} from "../../infrastructure/network/Messages";
 // but there could be stuff like local timers
 export default class HeartIndicatorRenderer extends Component {
 
-    assetName: string = "/images/heart.png";
-    asset: HTMLImageElement; //TODO: all assets should probably be stored somewhere else than on components
+    asset: HTMLImageElement; //TODO: all images should probably be stored somewhere else than on components
+
+    constructor(asset: HTMLImageElement) {
+        super();
+        this.asset = asset;
+    }
 
     draw(ctx: CanvasRenderingContext2D, amount: number, maxAmount: number) {
         if (this.asset == null) return;

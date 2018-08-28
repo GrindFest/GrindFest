@@ -1,7 +1,16 @@
 # time
-47:48:11
+69:55:16
 
 # unsorted
+
+refresh room that heals you a little with funny story from dungeon dweleres
+
+story progression cards to dungeons
+
+you are the computer  on the real level
+you are the player on the game level
+
+platform flying in circle outside of camera can be infinite and it can lok like you are flying through space
 
 how should movement on pc work? like in nox and uo? right click to move where mouse cursor is pointing to
 
@@ -51,7 +60,13 @@ none of the progress must change gameplay in any way, otherwise permadeath would
 
 on death your version increases
 
+multiple collision objects, circle on ground for ground stuff + falling down the pits, rectangle around body for slashing and air stuff
+
 camera shake
+
+impossible geometry dungeon
+
+platforms throw shadows of the same tilemap but black (layer above any layer should do this -- this will solve the clouds and reflections (reflections of the same tiles though) in water actually 
 
 its more mysterious to dont know what skills do exactly
 but for power players its necessary, maybe allow them paying to see it somethow with something like inspection card?

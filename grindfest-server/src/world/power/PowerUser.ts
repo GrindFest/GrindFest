@@ -19,13 +19,13 @@ export default class PowerUser extends Component {
     targetDirection: number;
     
 
-    findEnemiesInArcDirection(offsetX: number, offsetY: number, direction: number, length: number, radius: number): GameObject[] {
+    findEnemiesInArcDirection(collisionName: string, offsetX: number, offsetY: number, direction: number, length: number, radius: number): GameObject[] {
         let zoneSystem = this.gameObject.zone.gameSystems.find( (gs) => gs instanceof ZoneSystem) as ZoneSystem;
 
         let transform = this.gameObject.components.get(Transform);
         let combatant = this.gameObject.components.get(Combatant);
 
-        return Array.from(zoneSystem.findGameObjectsInArcDirection(transform.x + offsetX, transform.y + offsetY, direction, length, radius, combatant.enemyFilter));
+        return Array.from(zoneSystem.findGameObjectsInArcDirection(collisionName, transform.x + offsetX, transform.y + offsetY, direction, length, radius, combatant.enemyFilter));
         
         //TODO: i could store nodes everywhere and then index them by gameObject.id
     }

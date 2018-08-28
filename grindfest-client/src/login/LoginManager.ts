@@ -1,11 +1,23 @@
 import EventEmitter from "../infrastructure/EventEmitter";
 import NetworkManager from "../network/NetworkManager";
-import {ClientLoginRequest, LoginStatus, MessageId, ServerLoginResponse} from "../infrastructure/network/Messages";
+import {
+    ClientLoginRequest,
+    LoginStatus,
+    MessageId,
+    ServerEnterZone,
+    ServerLoginResponse
+} from "../infrastructure/network/Messages";
+import GameObjectDatabase from "../world/GameObjectDatabase";
+import ContentManager from "../content/ContentManager";
+import {GameSession} from "../game/GameSession";
 
 export default class LoginManager {
 
-    static loginStatusChanged = new EventEmitter();
-    static loginStatus: LoginStatus = null;
+    static instance = new LoginManager();
+    
+    loginStatusChanged = new EventEmitter();
+    loginStatus: LoginStatus = null;
+    myGameObjectId: number;
 
     constructor() {
 
@@ -14,7 +26,7 @@ export default class LoginManager {
 
     static login(username: string, password: string) {
         console.log("LoginManager.login", username);
-        NetworkManager.send({
+        NetworkManager.instance.send({
             id: MessageId.CMSG_LOGIN_REQUEST,
             username: username,
             password: password
@@ -22,12 +34,14 @@ export default class LoginManager {
     }
 
     //@messageHandler(MessageId.SMSG_LOGIN_RESPONSE)
-    static onLoginResponse(message: ServerLoginResponse) {
-        LoginManager.loginStatus = message.loginStatus;
-        LoginManager.loginStatusChanged.emit1(LoginManager.loginStatus);
+    onLoginResponse(message: ServerLoginResponse) {
+        this.loginStatus = message.loginStatus;
+        this.loginStatusChanged.emit1(this.loginStatus);
     }
 
-    static initialize() {
-        NetworkManager.registerHandler(MessageId.SMSG_LOGIN_RESPONSE, LoginManager.onLoginResponse);
+
+
+    initialize() {
+        NetworkManager.instance.registerHandler(MessageId.SMSG_LOGIN_RESPONSE, this.onLoginResponse.bind(this));
     }
 }

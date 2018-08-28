@@ -1,45 +1,35 @@
 import Component from "../../infrastructure/world/Component";
 import {TileMapDefinition} from "../../infrastructure/definitions/TileMapDefinition";
 import {TilesetDefinition} from "../../infrastructure/definitions/TilesetDefinition";
-import {Vector2} from "../../infrastructure/Math";
+import {add, multiply, subtract, Vector2, length, interpolate} from "../../infrastructure/Math";
+import {
+    GroupDefinition,
+    LayerDefinition,
+    ObjectGroupDefinition,
+    TileLayerDefinition
+} from "../../infrastructure/definitions/LayerDefinition";
 
 export default class TileMapRenderer extends Component {
 
 
-    public assetName: string;
-    public asset: TileMapDefinition;
+    public tileMap: TileMapDefinition;
+    public groupLayer: GroupDefinition;
 
 
     // @assetName name of tilemap to load
-    constructor(assetName: string) {
+    constructor(tileMap: TileMapDefinition, groupLayer: GroupDefinition) {
         super();
-        this.assetName = assetName;
+        this.tileMap = tileMap;
+        this.groupLayer = groupLayer;
     }
 
 
-
-    public drawLayers(ctx: CanvasRenderingContext2D, from: number, to: number, topLeft: Vector2, bottomRight: Vector2) {
-
-
-        for (let i = from; i < to; i++) {
-            this.drawLayer(ctx, i, topLeft, bottomRight);
-        }
-    }
-
-    public drawLayer(ctx: CanvasRenderingContext2D, layerIndex: number, topLeft: Vector2, bottomRight: Vector2) {
-
-        let layer = this.asset.layers[layerIndex];
-
-        if (layer.type != "tilelayer") // We don't want to draw objectlayers
-            return;
-        if (!layer.visible)
-            return;
-
+    public drawLayer(ctx: CanvasRenderingContext2D, layer: TileLayerDefinition, topLeft: Vector2, bottomRight: Vector2) {
 
         for (let y = Math.max(0, topLeft.y); y < Math.min(layer.height, bottomRight.y); y++) {
             for (let x = Math.max(0, topLeft.x); x < Math.min(layer.width, bottomRight.x); x++) {
 
-                let index = x + y * this.asset.width;
+                let index = x + y * layer.width;
 
                 let globalTileId = layer.data[index];
 
@@ -50,9 +40,9 @@ export default class TileMapRenderer extends Component {
 
                     let i = 0;
                     do {
-                        tileset = this.asset.tilesets[i];
+                        tileset = this.tileMap.tilesets[i];
                         i++;
-                    } while (this.asset.tilesets.length > i && this.asset.tilesets[i].firstgid <= globalTileId);
+                    } while (this.tileMap.tilesets.length > i && this.tileMap.tilesets[i].firstgid <= globalTileId);
 
 
                     let tileId = globalTileId - tileset.firstgid;
@@ -61,18 +51,34 @@ export default class TileMapRenderer extends Component {
                     let tileY = ((tileId / ((tileset.imagewidth / tileset.tilewidth) | 0)) | 0) * tileset.tileheight;
 
                     ctx.drawImage(tileset.imageAsset,
-                    // Source rectangle
+                        // Source rectangle
                         tileX, tileY,
                         tileset.tilewidth, tileset.tileheight,
-                    // Destination rectangle
-                        x * this.asset.tilewidth, y * this.asset.tileheight,
-                        this.asset.tilewidth, this.asset.tileheight);
+                        // Destination rectangle
+                        x * this.tileMap.tilewidth, y * this.tileMap.tileheight,
+                        this.tileMap.tilewidth, this.tileMap.tileheight);
                 }
-
 
 
             }
         }
+
+    }
+
+
+    // checkCollision(position: Vector2): number {
+    //     this.groupPositions[i]
+    // }
+
+    draw(ctx: CanvasRenderingContext2D, topLeft: { x: number; y: number }, bottomRight: { x: number; y: number }, spriteCallback: (z) => void) {
+
+
+        for (let layer of this.groupLayer.layers) {
+            if (layer.type == "tilelayer" && layer.visible && (layer.properties == null || !layer.properties.metadata)) { //TODO: convert properties.metadata to visible = false when loading map?
+                this.drawLayer(ctx, layer as TileLayerDefinition, topLeft, bottomRight);
+            }
+        }
+
 
     }
 }

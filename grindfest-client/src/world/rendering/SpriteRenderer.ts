@@ -9,7 +9,6 @@ import {Direction} from "../../infrastructure/network/Messages";
 
 export default class SpriteRenderer extends Component {
 
-    assetName: string;
     asset: SpriteSheetDefinition;
 
 
@@ -27,9 +26,9 @@ export default class SpriteRenderer extends Component {
     duration: number;
 
     // @assetName name of sprite to load
-    constructor(assetName: string) {
+    constructor(asset: SpriteSheetDefinition) {
         super();
-        this.assetName = assetName;
+        this.asset = asset;
     }
 
 
@@ -50,12 +49,12 @@ export default class SpriteRenderer extends Component {
 
 
     getDirection(direction: number): Direction {
-        return Math.floor(((Math.PI + direction+1 / 4 * Math.PI) / (2 * Math.PI)) * 4) % 4;
+        return Math.floor(((Math.PI + direction + 1 / 4 * Math.PI) / (2 * Math.PI)) * 4) % 4;
     }
 
     update(delta: number, direction: number) {
 
-        if (this.asset == null || this.currentAction == null) {
+        if (this.currentAction == null) {
             return;
         }
         let action = this.asset.actionsByName.get(this.currentAction);
@@ -89,7 +88,7 @@ export default class SpriteRenderer extends Component {
 //maybe its not problem to have methods on components, but they can't access attributes from here or expect other components to exist
     draw(ctx: CanvasRenderingContext2D, direction: number) {
 
-        if (this.asset == null || this.currentAction == null) {
+        if (this.currentAction == null) {
             return;
         }
 
@@ -111,5 +110,24 @@ export default class SpriteRenderer extends Component {
             //Destination rectangle
             -(this.asset.frameWidth) / 2, -(this.asset.frameHeight),
             this.asset.frameWidth, this.asset.frameHeight);
+
+        for (let collision of this.asset.collisions) {
+/*
+if debug draw collisions
+            if (collision.name == "walk") {
+                ctx.strokeStyle = "skyblue";
+            } else if (collision.name == "hit") {
+                ctx.strokeStyle = "red";
+            }
+            if (collision.type == "rectangle") {
+
+                ctx.strokeRect(collision.topLeft.x, collision.topLeft.y, collision.width, collision.height);
+            } else if (collision.type == "circle") {
+
+                ctx.beginPath();
+                ctx.arc(collision.center.x, collision.center.y, collision.radius, 0, 2 * Math.PI);
+                ctx.stroke();
+            }*/
+        }
     }
 }

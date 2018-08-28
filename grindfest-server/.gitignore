@@ -40,5 +40,6 @@ dist/**/*
 # Ignore output from coverage report
 coverage
 
-
+# directory junctions
 src/infrastructure/**/*
+assets/client/**/*

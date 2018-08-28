@@ -8,6 +8,7 @@ export default class Client {
     hero: GameObject;
 
     heroes: HeroDefinition[];
+    selectedHero: HeroDefinition;
 
     constructor(connection: websocket.connection) {
         this.connection = connection;

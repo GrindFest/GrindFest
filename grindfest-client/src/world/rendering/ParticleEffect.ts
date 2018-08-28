@@ -1,6 +1,7 @@
 import Component from "../../infrastructure/world/Component";
 import Transform from "../Transform";
 import {Vector2} from "../../infrastructure/Math";
+import {EffectDefinition} from "../../infrastructure/definitions/EffectDefinition";
 
 
 type Color = {
@@ -18,6 +19,7 @@ export type Particle = {
     lifespan: number;
 }
 
+
 export class ParticleEffect extends Component {
     particles: Particle[] = [];
     totalTime: number = 0;
@@ -25,8 +27,7 @@ export class ParticleEffect extends Component {
     bornRate: number = 0;
     maxParticles: number = 0;
 
-    assetNames: string[] = [];
-    assets: any[];
+    asset: EffectDefinition;
 
     generator: (totalTime: number, emit: (particle: Particle) => void) => void;
 
@@ -37,11 +38,10 @@ export class ParticleEffect extends Component {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-        if (this.assets == null) return;
 
         for (let particle of this.particles) {
 
-            ctx.drawImage(this.assets[particle.imageIndex], particle.x, particle.y);
+            ctx.drawImage(this.asset.images[particle.imageIndex], particle.x, particle.y);
         }
 
     }

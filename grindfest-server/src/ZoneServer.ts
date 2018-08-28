@@ -10,9 +10,8 @@ import PowerSystem from "./world/power/PowerSystem";
 import EffectSystem from "./world/EffectSystem";
 import GameObjectDatabase from "./world/GameObjectDatabase";
 import * as http from "http";
-import Transform from "./world/Transform";
-import NetState from "./world/NetState";
 import {CombatSystem} from "./world/combat/CombatSystem";
+import {displayZonePage} from "./DebugPages";
 
 const TIME_STEP = 1/60;
 
@@ -30,33 +29,7 @@ export default class ZoneServer {
 
         const server = http.createServer( (request, response) => {
             if (request.url == "/zone") {
-                response.writeHead(200, {"Content-Type":"text/html", "Refresh": "1"});
-
-
-                let data = "<html><body>";
-                for (let zone of ZoneManager.zones) {
-                data += `<svg width='${10*16}' height='${10*16}' style="border: 1px solid black">`;
-
-
-                    for (let gameObject of zone.gameObjects) {
-                        let transform = gameObject.components.get(Transform);
-                        let x = transform.x;
-                        let y = transform.y;
-
-                        let hasNetState = gameObject.components.has(NetState);
-
-                        data += `<circle cx="${x}" cy="${y}" r="4" stroke="black" stroke-width="1" fill="${hasNetState?'blue' : 'red'}" />`;
-                    }
-
-                data += "</svg>";
-                }
-
-                data += "</body></html>";
-                response.write(data);
-
-                response.end();
-
-
+                displayZonePage(response);
             } else {
                 response.writeHead(404);
                 response.end();
@@ -73,6 +46,7 @@ export default class ZoneServer {
             console.log((new Date()) + ' Server is listening on port 8080');
         });
 
+        GameObjectDatabase.instance.initialize();
         NetworkManager.initialize(server); //TODO: unstatic
         LoginManager.initialize();//TODO: unstatic
 
@@ -88,7 +62,7 @@ export default class ZoneServer {
 
 
         // Push test golems
-        zone.gameObjects.push(GameObjectDatabase.createGameObject("golem", {zoneId: 1, x: 3*16, y:3*16}));
+        zone.gameObjects.push(GameObjectDatabase.instance.createGameObject("golem", {zoneId: 1, x: 3*16, y:3*16}));
 //        zone.gameObjects.push(GameObjectDatabase.createGameObject("golem", {zoneId: 1, x: 3*16, y:3*16}));
 
         this.currentTime = performance.now();

@@ -4,7 +4,7 @@ import NetState from "../NetState";
 import Transform from "../Transform";
 import {
     ClientGameReady, Message,
-    MessageId, ServerAttributeSet, ServerGameObjectEnterZone, ServerGameObjectLeaveZone, ServerHeroEnterZone
+    MessageId, ServerAttributeSet, ServerEnterZone, ServerGameObjectEnterZone, ServerGameObjectLeaveZone
 } from "../../infrastructure/network/Messages";
 import Visual from "../Visual";
 import NetworkManager from "../../NetworkManager";
@@ -12,15 +12,23 @@ import Client from "../../Client";
 import LoginManager from "../../LoginManager";
 import GameObjectDatabase from "../GameObjectDatabase";
 import Mobile from "../Mobile";
-import {Node2, Node3} from "../../infrastructure/world/Component";
-import {arcCircleCollides, distance} from "../../infrastructure/Math";
+import {default as Component, Node2, Node3} from "../../infrastructure/world/Component";
+import {arcCircleCollides, arcRectangleCollides, distance} from "../../infrastructure/Math";
+import {SpriteSheetDefinition} from "../../infrastructure/definitions/SpriteSheetDefinition";
 
 
-//TODO: how about this? interface Player implements Node2<NetState, Transform>
+export class Collider extends Component {
+    asset: SpriteSheetDefinition;
+
+    constructor(asset: SpriteSheetDefinition) {
+        super();
+        this.asset = asset;
+    }
+}
 
 export default class ZoneSystem extends GameSystem {
 
-
+//TODO: how about this? interface Player implements Node2<NetState, Transform>
     players: Node2<NetState, Transform>[] = []; //TODO: transform wouldnt be necessary here if x,y were attributes
     zoneTag: string;
     lastGameObjectId = 1;
@@ -28,7 +36,7 @@ export default class ZoneSystem extends GameSystem {
     constructor() {
         super();
 
-        this.zoneTag = "zone/test"; //TODO: why isnt there .json at the end?
+        this.zoneTag = "zones/test.json";
 
         this.registerNodeJunction2(this.players, NetState, Transform);
 
@@ -80,8 +88,9 @@ export default class ZoneSystem extends GameSystem {
     onGameReady(client: Client, message: ClientGameReady) {
 
         // something has to trasnslate herodefinition to game objects and components
-        let heroDef = client.heroes[0];
-        let goHero = GameObjectDatabase.createGameObject("hero", {...heroDef, client: client});
+        let selectedHero = client.selectedHero;
+        let goHero = GameObjectDatabase.instance.createGameObject("hero", {...selectedHero, client: client});
+
         client.hero = goHero;
 
 
@@ -106,15 +115,6 @@ export default class ZoneSystem extends GameSystem {
 
         let netState = gameObject.components.get(NetState) as NetState;
 
-        if (netState != null) {
-            NetworkManager.send(netState.client, {
-                id: MessageId.SMSG_HERO_ENTER_ZONE,
-                zoneTag: this.zoneTag,
-                myGameObjectId: gameObject.id,
-            } as ServerHeroEnterZone);
-        }
-
-
         //TODO: i should use broadcast here, but that isnt compatible with sending messages to objects
         // it seems that it should be zone -> zone and not zone -> zone
         // but then there would be nothin like actors?
@@ -123,7 +123,11 @@ export default class ZoneSystem extends GameSystem {
 
         if (netState != null) {
             for (let otherGO of this.zone.gameObjects) {
-                NetworkManager.send(netState.client, this.createGameObjectEnterZone(otherGO))
+                let message = this.createGameObjectEnterZone(otherGO);
+                if (gameObject.id === otherGO.id) {
+                    message.isYou = true;
+                }
+                NetworkManager.send(netState.client, message)
             }
         }
 
@@ -178,7 +182,7 @@ export default class ZoneSystem extends GameSystem {
         }
     }
 
-    * findGameObjectsInArcDirection(x: number, y: number, direction: number, length: number, radius: number, filter: (go) => boolean): IterableIterator<GameObject> {
+    * findGameObjectsInArcDirection(collisionName, x: number, y: number, direction: number, length: number, radius: number, filter: (go) => boolean): IterableIterator<GameObject> {
 
         let arcDirection = {x: Math.cos(direction), y: Math.sin(direction)};
         let arcCenter = {x: x, y: y};
@@ -186,33 +190,61 @@ export default class ZoneSystem extends GameSystem {
         for (let gameObject of this.zone.gameObjects) { //TODO: change to quad tree lookup
 
             let transform = gameObject.components.get(Transform);
+            let collider = gameObject.components.get(Collider);
 
             let enemyCircleRadius = 0;
 
 
-            if ((filter == null || filter(gameObject)) && arcCircleCollides(arcCenter, {
-                x: arcCenter.x + arcDirection.x,
-                y: arcCenter.y + arcDirection.y
-            }, radius, length, {x: transform.x, y: transform.y}, enemyCircleRadius)) {
-                yield gameObject;
+            let passed = (filter == null || filter(gameObject));
+            if (!passed) {
+                continue;
+            }
+
+            let collision = collider.asset.collisions.find((c) => c.name == collisionName);
+
+            if (collision == null) {
+                continue;
+            }
+
+            if (collision.type == "circle") {
+                if (arcCircleCollides({
+                    center: arcCenter, direction: {
+                        x: arcCenter.x + arcDirection.x,
+                        y: arcCenter.y + arcDirection.y
+                    }, radius: radius, length: length
+                },
+                    {center: {x: collision.center.x + transform.x, y: collision.center.y + transform.y}, radius: collision.radius })) {
+                    yield gameObject;
+                }
+            } else if (collision.type == "rectangle") {
+                if (arcRectangleCollides({
+                        center: arcCenter, direction: {
+                            x: arcCenter.x + arcDirection.x,
+                            y: arcCenter.y + arcDirection.y
+                        }, radius: radius, length: length
+                    },
+                    {topLeft: {x: collision.topLeft.x + transform.x, y: collision.topLeft.y + transform.y}, width: collision.width, height: collision.height})) {
+                    yield gameObject;
+                }
             }
         }
 
     }
 
     //TODO: maybe this is something like spatial system
-    findNearestGameObject(x: number, y: number, filter: (go) => any): GameObject {
+    findNearestGameObject(x: number, y: number, range: number, filter: (go) => any): GameObject {
 
         let nearestGameObject = null;
         let minDistance = null;
 
         for (let gameObject of this.zone.gameObjects) { //TODO: change to quad tree lookup
             if ((filter == null || filter(gameObject))) {
+
                 let transform = gameObject.components.get(Transform);
 
                 let dist = distance({x: x, y: y}, transform);
 
-                if (minDistance = null || dist < minDistance) {
+                if (minDistance == null || dist < minDistance) {
                     nearestGameObject = gameObject;
                     minDistance = dist;
                 }

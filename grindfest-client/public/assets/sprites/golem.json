@@ -2,9 +2,14 @@
   "frameWidth": 64,
   "frameHeight": 96,
 
-  "imageAssetName": "sprites/golem.png",
+  "imageAssetName": "../sprites/golem.png",
 
   "defaultAction": "walk",
+
+  "collisions": [
+    {"name": "walk", "type": "circle", "center": {"x":0, "y":-10}, "radius": 10},
+    {"name": "hit", "type": "rectangle", "topLeft":{"x":-28, "y":-77}, "width":54, "height":73}
+  ],
 
   "actions": [{
     "name": "idle",

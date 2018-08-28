@@ -55,6 +55,9 @@ export default class RenderingSystem extends GameSystem {
             camera.c1.viewport = {width: this.context.canvas.width, height: this.context.canvas.height}
         }
 
+        // for (let tileMapAndTransform of this.tileMaps) {
+        //     let tileMap = tileMapAndTransform.c1;
+        // }
         for (let sprite of this.mobileSprites) {
 
             sprite.c1.update(delta, sprite.c2.direction);
@@ -67,10 +70,6 @@ export default class RenderingSystem extends GameSystem {
             return transformA.localPosition.y - transformB.localPosition.y;
         });
 
-        // for (let floatingNumberAndTransform of this.floatingNumbers) {
-        //     let floatingNumber = floatingNumberAndTransform.c1;
-        //     floatingNumber.
-        // }
     }
 
     draw(delta) {
@@ -95,73 +94,73 @@ export default class RenderingSystem extends GameSystem {
             for (let tileMapAndTransform of this.tileMaps) {
                 let tileMap = tileMapAndTransform.c1;
                 let transform = tileMapAndTransform.c2;
-                if (tileMap.asset == null) continue;
 
+                ctx.save();
+                ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
 
                 let topLeft = {
-                    x: Math.max(0, ((cameraTransform.worldPosition.x - ctx.canvas.width / 2 - tileMap.asset.tilewidth) / 64) | 0),
-                    y: Math.max(0, ((cameraTransform.worldPosition.y - ctx.canvas.height / 2 - tileMap.asset.tileheight) / 64) | 0)
+                    x: Math.max(0, ((cameraTransform.worldPosition.x - ctx.canvas.width / 2 - tileMap.tileMap.tilewidth) / 64) | 0),
+                    y: Math.max(0, ((cameraTransform.worldPosition.y - ctx.canvas.height / 2 - tileMap.tileMap.tileheight) / 64) | 0)
                 };
                 let bottomRight = {
-                    x: Math.min(tileMap.asset.width, ((cameraTransform.worldPosition.x + ctx.canvas.width / 2 + tileMap.asset.tilewidth) / 64) | 0),
-                    y: Math.min(tileMap.asset.height, ((cameraTransform.worldPosition.y + ctx.canvas.height / 2 + tileMap.asset.tileheight) / 64) | 0)
+                    x: Math.min(tileMap.tileMap.width, ((cameraTransform.worldPosition.x + ctx.canvas.width / 2 + tileMap.tileMap.tilewidth) / 64) | 0),
+                    y: Math.min(tileMap.tileMap.height, ((cameraTransform.worldPosition.y + ctx.canvas.height / 2 + tileMap.tileMap.tileheight) / 64) | 0)
                 };
 
                 topLeft = {x: 0, y: 0}; //TODO: remove
-                bottomRight = {x: tileMap.asset.width, y: tileMap.asset.height};
-
-                tileMap.drawLayers(ctx, 0, tileMap.asset.spritesLayer, topLeft, bottomRight);
+                bottomRight = {x: tileMap.tileMap.width, y: tileMap.tileMap.height};
 
 
-                for (let spriteAndTransform of this.mobileSprites) {
-                    let sprite = spriteAndTransform.c1;
-                    let mobile = spriteAndTransform.c2;
-                    let transform = spriteAndTransform.c3;
+                let spriteLayerCallback = (z) => { //TODO: this can't be affected by transforms of tile maps
+                };
+                tileMap.draw(ctx, topLeft, bottomRight, spriteLayerCallback);
 
-                    ctx.save();
+                ctx.restore();
+            }
 
-                    ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
+            for (let spriteAndTransform of this.mobileSprites) {
+                let sprite = spriteAndTransform.c1;
+                let mobile = spriteAndTransform.c2;
+                let transform = spriteAndTransform.c3;
 
-                    ctx.fillStyle = "red";
-                    ctx.fillRect(0, 0, 1, 1);
+                ctx.save();
 
-                    sprite.draw(ctx, mobile.direction);
+                ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
 
-                    ctx.restore();
-                }
 
-                for (let heartIndicatorAndTransform of this.heartIndicators) {
-                    let heartIndicator = heartIndicatorAndTransform.c1;
-                    let transform = heartIndicatorAndTransform.c2;
-                    let sprite = heartIndicatorAndTransform.c3;
+                sprite.draw(ctx, mobile.direction);
 
-                    if (sprite.asset == null) continue;
+                ctx.restore();
+            }
 
-                    ctx.save();
+            for (let heartIndicatorAndTransform of this.heartIndicators) {
+                let heartIndicator = heartIndicatorAndTransform.c1;
+                let transform = heartIndicatorAndTransform.c2;
+                let sprite = heartIndicatorAndTransform.c3;
 
-                    ctx.translate(transform.worldPosition.x, transform.worldPosition.y - sprite.asset.frameHeight * 3 / 4);
+                if (sprite.asset == null) continue;
 
-                    heartIndicator.draw(ctx, heartIndicator.gameObject.get(AttributeId.HitPoints), heartIndicator.gameObject.get(AttributeId.MaxHitPoints));
+                ctx.save();
 
-                    ctx.restore();
-                }
+                ctx.translate(transform.worldPosition.x, transform.worldPosition.y - sprite.asset.frameHeight * 3 / 4);
 
-                for (let particleEffectAndTransform of this.particles) {
-                    let particleEffect = particleEffectAndTransform.c1;
-                    let transform = particleEffectAndTransform.c2;
-                    ctx.save();
+                heartIndicator.draw(ctx, heartIndicator.gameObject.get(AttributeId.HitPoints), heartIndicator.gameObject.get(AttributeId.MaxHitPoints));
 
-                    ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
-                    ctx.rotate(transform.rotation);
-                    particleEffect.draw(ctx);
-                    ctx.restore();
+                ctx.restore();
+            }
 
-                }
+            for (let particleEffectAndTransform of this.particles) {
+                let particleEffect = particleEffectAndTransform.c1;
+                let transform = particleEffectAndTransform.c2;
+                ctx.save();
 
-                tileMap.drawLayers(ctx, tileMap.asset.spritesLayer, tileMap.asset.layers.length, topLeft, bottomRight);
-
+                ctx.translate(transform.worldPosition.x, transform.worldPosition.y);
+                ctx.rotate(transform.rotation);
+                particleEffect.draw(ctx);
+                ctx.restore();
 
             }
+
 
             for (let floatingTextAndTransform of this.floatingTexts) {
                 let floatingText = floatingTextAndTransform.c1;

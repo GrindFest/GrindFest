@@ -3,7 +3,7 @@ import {
     AttributeId,
     MessageId, ServerAttributeSet, ServerGameObjectEnterZone,
     ServerGameObjectLeaveZone,
-    ServerHeroEnterZone
+    ServerEnterZone
 } from "../../infrastructure/network/Messages";
 import NetworkManager from "../../network/NetworkManager";
 import Camera from "../rendering/Camera";
@@ -13,6 +13,7 @@ import Controllable from "../controls/Controllable";
 import Mobile from "../movement/Mobile";
 import GameObjectDatabase from "../GameObjectDatabase";
 import ControlsSystem from "../controls/ControlsSystem";
+import {GameSession} from "../../game/GameSession";
 
 export default class ZoneSystem extends GameSystem {
 
@@ -28,10 +29,10 @@ export default class ZoneSystem extends GameSystem {
 
         this.registerNodeJunction(this.mobiles, Mobile);
 
-        NetworkManager.registerHandler(MessageId.SMSG_GO_ENTER_ZONE, this.onActorEnterZone.bind(this));
-        NetworkManager.registerHandler(MessageId.SMSG_GO_LEAVE_ZONE, this.onActorLeaveZone.bind(this));
-        NetworkManager.registerHandler(MessageId.SMSG_HERO_ENTER_ZONE, this.onHeroEnterZone.bind(this));
-        NetworkManager.registerHandler(MessageId.SMSG_ATTRIBUTE_SET, this.onAttributeSet.bind(this));
+        NetworkManager.instance.registerHandler(MessageId.SMSG_GO_ENTER_ZONE, this.onActorEnterZone.bind(this));
+        NetworkManager.instance.registerHandler(MessageId.SMSG_GO_LEAVE_ZONE, this.onActorLeaveZone.bind(this));
+
+        NetworkManager.instance.registerHandler(MessageId.SMSG_ATTRIBUTE_SET, this.onAttributeSet.bind(this));
 
     }
 
@@ -57,13 +58,14 @@ export default class ZoneSystem extends GameSystem {
         let zone = this.zone;
 
         //TODO: call gameobjectdatabase.createobject and use data from message as definition
-        let actor = GameObjectDatabase.createGameObject("actor", message);
+        let actor = GameObjectDatabase.instance.createGameObject("actor", message);
 
-        if (message.goId == this.myGameObjectId) {
+
+
+        if (message.isYou) { // If this is me attach camera to me
+            GameSession.instance.myGameObjectId = message.goId;
+
             actor.components.get(Controllable).isLocal = true;
-        }
-
-        if (message.goId == this.myGameObjectId) { // If this is me attach camera to me
 
             //TODO: move to gameObjectDatase
             let camera = new GameObject();
@@ -86,20 +88,6 @@ export default class ZoneSystem extends GameSystem {
 
     }
 
-    onHeroEnterZone(message: ServerHeroEnterZone) {
-        console.log("ZoneSystem.onHeroEnterZone", message);
 
-        this.zoneTag = message.zoneTag;
-        this.myGameObjectId = message.myGameObjectId;
-
-        let zone = this.zone;
-
-        let map = GameObjectDatabase.createGameObject("map", message);
-        zone.gameObjects.push(map);
-
-
-
-
-    }
 
 }

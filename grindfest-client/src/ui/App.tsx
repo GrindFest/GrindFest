@@ -5,15 +5,17 @@ import NetworkManager from "../network/NetworkManager";
 import LoginManager from "../login/LoginManager";
 import {Component} from 'react';
 import {LoginStatus} from "../infrastructure/network/Messages";
+import {GameSession, GameState} from "../game/GameSession";
 
-export default class App extends Component<any, {loginStatus: LoginStatus, connectionStatus: string}> {
+export default class App extends Component<any, {loginStatus: LoginStatus, connectionStatus: string, gameState: GameState}> {
 
 
     constructor(props: any, context?: any) {
         super(props);
         this.state = {
             connectionStatus: null,
-            loginStatus: null
+            loginStatus: null,
+            gameState: GameState.NotInGame,
         };
 
 
@@ -24,28 +26,47 @@ export default class App extends Component<any, {loginStatus: LoginStatus, conne
     }
 
     componentDidMount() {
-        NetworkManager.initialize();
-        LoginManager.initialize();
-        NetworkManager.connectionStatusChanged.register((connectionStatus) => {
+
+        NetworkManager.instance.initialize();
+        LoginManager.instance.initialize();
+        GameSession.instance.initialize();
+
+        NetworkManager.instance.connectionStatusChanged.register((connectionStatus) => {
             this.setState({
                 connectionStatus: connectionStatus
             });
         });
 
         /*this.loginStatusChangedHandler =*/
-        LoginManager.loginStatusChanged.register((loginStatus) => {
+        LoginManager.instance.loginStatusChanged.register((loginStatus) => {
             this.setState({
                 loginStatus: loginStatus
             });
         });
 
+        GameSession.instance.gameStateChanged.register( (gameState) => {
+
+
+            this.setState({
+                gameState: gameState
+            })
+        })
+
     }
 
     render() {
-        return (
-            <div>
-                {this.state.connectionStatus === "CONNECTED" ? (this.state.loginStatus !== LoginStatus.OK ? <LoginScreen/> : <GameScreen/>) : <div>Connecting... {NetworkManager.connectionStatus}</div> }
-            </div>
-        );
+        if (this.state.connectionStatus === "CONNECTED") {
+            if (this.state.loginStatus !== LoginStatus.OK) {
+                return <LoginScreen/>;
+            } else {
+                if (this.state.gameState != GameState.NotInGame) {
+                    return <GameScreen/>;
+                } else {
+                    return "Waiting for game server..."
+                }
+            }
+        } else {
+            return <div>Connecting... {NetworkManager.instance.connectionStatus}</div>;
+        }
     }
 }

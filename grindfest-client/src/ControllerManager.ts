@@ -103,6 +103,9 @@ export default class ControllerManager {
 
     static capture(element: HTMLElement) {
         this.captured = element;
+        element.tabIndex = 1000;
+        element.style.outline = "none";
+        element.focus();
 
         //TODO: if there will be option to change the resolution, this won't work
         this.viewportWidth = this.captured.clientWidth;

@@ -7,17 +7,62 @@ import TileMapRenderer from "./rendering/TileMapRenderer";
 import Controllable from "./controls/Controllable";
 import Timer from "./Timer";
 import {FloatingTextEffect, Particle, ParticleEffect} from "./rendering/ParticleEffect";
-import {randomRange} from "../infrastructure/Math";
+import {interpolate, length, randomRange, subtract, Vector2} from "../infrastructure/Math";
 import HeartIndicatorRenderer from "./rendering/HeartIndicatorRenderer";
 import {ParticleSystem} from "./rendering/ParticleSystem";
+import {TileMapDefinition} from "../infrastructure/definitions/TileMapDefinition";
+import {GroupDefinition, ObjectGroupDefinition} from "../infrastructure/definitions/LayerDefinition";
+import Component from "../infrastructure/world/Component";
+import {LinearInterpolator} from "./movement/MobileSystem";
+import ContentManager from "../content/ContentManager";
+
+
 
 
 //TODO: merge with server gamobjectdatabase?
 //TODO: load templates from json files
-export default class GameObjectDatabase {
+export default class GameObjectDatabase { //TODO: this is probably zone manager
+
+    static instance: GameObjectDatabase = new GameObjectDatabase();
 
 
-    static createGameObject(templateName: string, definition: any): GameObject {
+
+
+    //TODO: where should this be?
+    static createFromMap(tileMap: TileMapDefinition): GameObject[] {
+
+
+        let objects = [];
+        {
+            for (let [i, groupLayer] of tileMap.layers.entries()) {
+                if (groupLayer.type == "group") {
+
+                    let go = new GameObject();
+                    go.components.push(new Transform());
+                    go.components.push(new TileMapRenderer(tileMap, groupLayer as GroupDefinition));
+
+                    for (let layer of (groupLayer as GroupDefinition).layers) {
+                        if (layer.type == "objectgroup") {
+                            let objectGroup = layer as ObjectGroupDefinition;
+                            for (let object of objectGroup.objects) {
+                                if (object.type == "mover") {
+                                    let from = object.polyline[0];
+                                    let to = object.polyline[1];
+                                    let speed = 0.08;
+                                    //go.components.push(new LinearInterpolator(from, to, speed));
+                                }
+                            }
+                        }
+                    }
+
+                    objects.push(go);
+                }
+            }
+        }
+        return objects;
+    }
+
+    createGameObject(templateName: string, definition: any): GameObject {
         let go = new GameObject();
         go.id = definition.goId;
 
@@ -27,10 +72,11 @@ export default class GameObjectDatabase {
             }
             go.components.push(new Transform(definition.x, definition.y));
             go.components.push(new PowerUser()); //TODO: can all mobiles be skill users?
-            go.components.push(new SpriteRenderer(definition.spriteAsset)); //TODO: this could have the asset loaded, the problem is that this is incorrect place to create the object, it should be from gameobjectadatabse that has access to content, so the contentsystem can be contentmanager afterall
+            go.components.push(new SpriteRenderer(ContentManager.instance.get(definition.spriteAsset))); //TODO: this could have the asset loaded, the problem is that this is incorrect place to create the object, it should be from gameobjectadatabse that has access to content, so the contentsystem can be contentmanager afterall
             go.components.push(new Mobile());
             go.components.push(new Controllable());
-            go.components.push(new HeartIndicatorRenderer());
+
+            go.components.push(new HeartIndicatorRenderer(ContentManager.instance.get<HTMLImageElement>("images/heart.png")));
 
         } else if (templateName == "windSlashLarge") {
             let transform = new Transform(definition.x, definition.y - 16);
@@ -53,16 +99,21 @@ export default class GameObjectDatabase {
             particleEffect.maxParticles = 1;
             particleEffect.bornRate = 0;
             particleEffect.generator = generator;
-            particleEffect.assetNames = ["/images/WindSlashLarge1.png", "/images/WindSlashLarge2.png", "/images/WindSlashLarge4.png", "/images/WindSlashLarge6.png"];
+
+
+            particleEffect.asset = ContentManager.instance.get("effects/windSlashLarge.json");
+
+
+
             go.components.push(particleEffect);
             go.components.push(Timer.deletingTimer(4 * frameTime));
-        } else if (templateName == "map") {
+        } /*else if (templateName == "map") {
 
             go.components.push(new Transform(0, 0));
-            go.components.push(new TileMapRenderer("/maps/test.json")); //TODO: get map name from packet
+            go.components.push(new TileMapRenderer(ContentManager.instance.get("/maps/test.json"))); //TODO: get map name from packet
 
 
-        } else if (templateName == "floatingNumber") {
+        } */ else if (templateName == "floatingNumber") {
             go.components.push(new Transform(definition.x, definition.y));
             go.components.push(new FloatingTextEffect(definition.value, {
                 r: 255,

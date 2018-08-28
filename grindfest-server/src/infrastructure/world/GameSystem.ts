@@ -7,12 +7,12 @@ import {GameObjectLeaveZonePayload} from "./EnterZonePayload";
 export default abstract class GameSystem {
 
     zone: Zone;
-
+    messageHandlers: Map<Function, EventEmitter> = new Map();
     private registeredNodes: Map<Function[], Node[]> = new Map();
 
     findGameObjectById(id: number): GameObject { //TODO: should this throw exception if i can't find the game object?
         if (id == null) throw "invalid argument id null";
-        return this.zone.gameObjects.find( (go) => go.id === id);
+        return this.zone.gameObjects.find((go) => go.id === id);
     }
 
     initialize() {
@@ -118,24 +118,35 @@ export default abstract class GameSystem {
 
     //TODO: there are ways to make the array look nice like {sprite: T1, transform: T2}[] or even {T1 & T2}[], but it will probably have performance cost
     protected registerNodeJunction<T extends Component>(array: T[], componentType: new(...args: any[]) => T) {
+        if (array == null) { //TODO: this might be implemented as @notNull decorator
+            throw "Node junction target array can't be null";
+        }
         this.registeredNodes.set([componentType], array);
     }
 
 
     protected registerNodeJunction2<T1 extends Component, T2 extends Component>(array: Node2<T1, T2>[], component1Type: new(...args: any[]) => T1, component2Type: new(...args: any[]) => T2) {
+        if (array == null) {
+            throw "Node junction target array can't be null";
+        }
         this.registeredNodes.set([component1Type, component2Type], array);
     }
 
     protected registerNodeJunction3<T1 extends Component, T2 extends Component, T3 extends Component>(array: Node3<T1, T2, T3>[], component1Type: new(...args: any[]) => T1, component2Type: new(...args: any[]) => T2, component3Type: new(...args: any[]) => T3) {
+        if (array == null) {
+            throw "Node junction target array can't be null";
+        }
         this.registeredNodes.set([component1Type, component2Type, component3Type], array);
     }
 
     protected registerNodeJunction4<T1 extends Component, T2 extends Component, T3 extends Component, T4 extends Component>(array: Node3<T1, T2, T3>[], component1Type: new(...args: any[]) => T1, component2Type: new(...args: any[]) => T2, component3Type: new(...args: any[]) => T3, component4Type: new(...args: any[]) => T4) {
+        if (array == null) {
+            throw "Node junction target array can't be null";
+        }
         this.registeredNodes.set([component1Type, component2Type, component3Type, component4Type], array);
     }
 
 
-    messageHandlers: Map<Function, EventEmitter> = new Map();
 
     sendMessage(gameObject: GameObject, payload: any) {
 

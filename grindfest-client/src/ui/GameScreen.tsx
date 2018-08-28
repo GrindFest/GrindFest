@@ -1,11 +1,8 @@
 import * as React from 'react';
 import Game from "../game/Game";
 import RenderingSystem from "../world/rendering/RenderingSystem";
-import ContentSystem from "../world/ContentSystem";
 import {Component} from "react";
 import ZoneSystem from "../world/zone/ZoneSystem";
-import NetworkManager from "../network/NetworkManager";
-import {ClientGameReady, MessageId} from "../infrastructure/network/Messages";
 import ControllerManager from "../ControllerManager";
 import ControllerSystem from "../world/controls/ControlsSystem";
 import MobileSystem from "../world/movement/MobileSystem";
@@ -13,20 +10,39 @@ import ZoneManager from "../infrastructure/world/ZoneManager";
 import Zone from "../infrastructure/world/Zone";
 import TimerSystem from "../world/TimerSystem";
 import {ParticleSystem} from "../world/rendering/ParticleSystem";
+import GameObjectDatabase from "../world/GameObjectDatabase";
+import {GameSession, GameState} from "../game/GameSession";
+import ContentManager from "../content/ContentManager";
 
-export default class GameScreen extends Component {
+export default class GameScreen extends Component<any, { gameState: GameState }> {
 
     canvas: HTMLCanvasElement;
 
-    componentDidMount() {
+    constructor(props, context) {
+        super(props, context);
 
+        this.state = {
+            gameState: null
+        }
+    }
+
+    async componentDidMount() {
+
+        GameSession.instance.gameStateChanged.register((gameState) => this.setState({gameState: gameState}));
+
+        // Preload everything
+        //TODO: do it in asychronous way with loading indicators
+        await ContentManager.instance.loadEffect("effects/windSlashLarge.json");
+        await ContentManager.instance.load("images/heart.png");
+        await ContentManager.instance.loadSpriteSheet("sprites/hero.json");
+        await ContentManager.instance.loadSpriteSheet("sprites/golem.json");
 
         let game = new Game();
         game.initialize();
 
 
         let zone = new Zone();
-        zone.gameSystems.push(new ContentSystem());
+        // zone.tag =
         zone.gameSystems.push(new RenderingSystem(this.canvas.getContext("2d")));
         zone.gameSystems.push(new ZoneSystem());
         zone.gameSystems.push(new ControllerSystem());
@@ -35,14 +51,13 @@ export default class GameScreen extends Component {
         zone.gameSystems.push(new ParticleSystem());
         ZoneManager.zones.push(zone);
 
+        let mapObjects = GameObjectDatabase.createFromMap(await ContentManager.instance.loadTileMap(GameSession.instance.zoneTag));
+        for (let gameObject of mapObjects) {
+            zone.gameObjects.push(gameObject);
+        }
 
-        NetworkManager.send({
-            id: MessageId.CMSG_GAME_READY
-        } as ClientGameReady); //TODO: this simulates connecting to the zone server
+        GameSession.instance.ready();
 
-        this.canvas.tabIndex = 1000;
-        this.canvas.style.outline = "none";
-        this.canvas.focus();
         ControllerManager.capture(this.canvas)
     }
 
@@ -52,7 +67,10 @@ export default class GameScreen extends Component {
 
     render() {
         return (
-            <canvas ref={ (ref) => this.canvas = ref} width={600} height={600} style={{border: "1px solid black"}} />
+            <div>
+                {this.state.gameState == GameState.LoadingZone ? "Loading zone..." : ""}
+                <canvas ref={(ref) => this.canvas = ref} width={600} height={600} style={{border: "1px solid black"}}/>
+            </div>
         );
     }
 }

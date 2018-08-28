@@ -2,9 +2,14 @@
   "frameWidth": 48,
   "frameHeight": 48,
 
-  "imageAssetName": "sprites/hero.png",
+  "imageAssetName": "../sprites/hero2.png",
 
   "defaultAction": "idle",
+
+  "collisions": [
+    {"name": "walk", "type": "circle", "center":{"x":0, "y":0}, "radius": 5},
+    {"name": "hit", "type": "rectangle", "topLeft": {"x":-4, "y":-30}, "width":8, "height":28}
+  ],
 
   "actions": [{
     "name": "idle",

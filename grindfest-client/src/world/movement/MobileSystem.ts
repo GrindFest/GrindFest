@@ -1,65 +1,120 @@
 import GameSystem from "../../infrastructure/world/GameSystem";
-import SpriteRenderer from "../rendering/SpriteRenderer";
 import Transform from "../Transform";
 import Mobile from "./Mobile";
 import {Node2} from "../../infrastructure/world/Component";
 import TileMapRenderer from "../rendering/TileMapRenderer";
+import {GroupDefinition, TileLayerDefinition} from "../../infrastructure/definitions/LayerDefinition";
+import {interpolate, length, subtract, Vector2} from "../../infrastructure/Math";
+import Component from "../../infrastructure/world/Component";
+
+export class LinearInterpolator extends Component {
+    from: Vector2;
+    to: Vector2;
+    speed: number;
+
+    time: number = 0;
+
+    constructor(from: Vector2, to: Vector2, speed: number) {
+        super();
+        this.from = from;
+        this.to = to;
+        this.speed = speed;
+    }
+
+
+}
 
 export default class MobileSystem extends GameSystem {
     mobiles: Node2<Mobile, Transform>[] = [];
-    private tileMaps: TileMapRenderer[] = [];
+    private tileMaps: Node2<TileMapRenderer, Transform>[] = [];
+    private linearInterpolatorAndTransforms: Node2<LinearInterpolator, Transform>[] = [];
 
     constructor() {
         super();
 
         this.registerNodeJunction2(this.mobiles, Mobile, Transform);
 
-        //TODO: i dont like that there is one tilemap and i need an array, also whats with the name tilemapRENDERER?
-        this.registerNodeJunction(this.tileMaps, TileMapRenderer);
+        //TODO:  whats with the name tilemapRENDERER?
+        this.registerNodeJunction2(this.tileMaps, TileMapRenderer, Transform);
+        this.registerNodeJunction2(this.linearInterpolatorAndTransforms, LinearInterpolator, Transform);
 
     }
 
+    updateLinearInterpolators(dt: number) {
+
+        for (let linearInterpolatorAndTransform of this.linearInterpolatorAndTransforms) {
+            let linearInterpolator = linearInterpolatorAndTransform.c1;
+            let transform = linearInterpolatorAndTransform.c2;
+            let position = interpolate(linearInterpolator.from, linearInterpolator.to, (Math.sin(linearInterpolator.time * linearInterpolator.speed / length(subtract(linearInterpolator.to, linearInterpolator.from))) + 1) / 2);
+            transform.localPosition.x = position.x;
+            transform.localPosition.y = position.y;
+
+            linearInterpolator.time += dt;
+
+        }
+    }
 
     update(delta: number) {
+
+        this.updateLinearInterpolators(delta);
+
         for (let mobileAndTransform of this.mobiles) {
             let mobile = mobileAndTransform.c1;
 
             if (mobile.velocity.x != 0 || mobile.velocity.y != 0) {
 
-                let transform = mobileAndTransform.c2;
+                let mobileTransform = mobileAndTransform.c2;
 
 
                 // TODO: extrapolate future position
 
                 //TODO: fix speed of diagonal movement
-                let x = (mobile.velocity.x) * delta;
-                let y = (mobile.velocity.y) * delta;
-
-                //TODO: check for collision
-                // problem is currently zone can have multiple tilemaps, which doesn't really make sense, but removing this would
-                // mean that tilemap will no longer be a component?
-                // or should i just always take first tilemap component i can find?
-
-                let tileMap = this.tileMaps[0];
-
-                // i might not have tilemap asset loaded here yet... i should not send game ready packet until i do
-                // but i don't know which zone to use, at that is packet sent after my gameready packet
+                let movementX = (mobile.velocity.x) * delta;
+                let movementY = (mobile.velocity.y) * delta;
 
 
+                //TODO: when tilemaps starts overlaping this place needs to be fixed so i will know on which tilemap the player is standing, also tilemaps have to have some sort of Z level based on their relative Z position
+
+                //TODO: go through all the tilemaps, each has to has correct worldPosition in world
                 let tileId;
-                if (tileMap.asset == null) {
-                    tileId = 0;
-                } else {
 
-                    let tileX = ((transform.worldPosition.x + x) / tileMap.asset.tilewidth) | 0;
-                    let tileY = ((transform.worldPosition.y + y) / tileMap.asset.tilewidth) | 0;
+                for (let tileMapAndTransform of this.tileMaps) {
+
+                    let map = tileMapAndTransform.c1;
+                    let mapTransform = tileMapAndTransform.c2;
+
+
+                    let tileZ;
+
+
                     //TODO: collisions don't work on client when map asset is not loaded
-                    tileId = tileMap.asset.collisionLayer.data[tileX + tileY * tileMap.asset.collisionLayer.width];
+
+
+                    //TODO: collision checks on different z levels
+
+
+                    //TODO: i could just attach players transform to map transform and he would move with it
+
+                    for (let layer of map.groupLayer.layers) {
+                        if (layer.properties != null && layer.properties.metadata) { //TODO: always initialize properties in loader so i don't have to deal with it here?
+                            let metadataLayer = layer as TileLayerDefinition;
+
+                            let tileX = ((mobileTransform.worldPosition.x + mapTransform.worldPosition.x + movementX) / map.tileMap.tilewidth) | 0;
+                            let tileY = ((mobileTransform.worldPosition.y + mapTransform.worldPosition.x + movementY) / map.tileMap.tilewidth) | 0;
+
+                            tileId = metadataLayer.data[tileX + tileY * metadataLayer.width];
+                            if (tileId != 0) {
+                                break; // currently collision with only one group is allowed
+                            }
+                        }
+                    }
+
+
                 }
                 if (tileId == 0) {
 
-                    transform.localPosition.x += x;
-                    transform.localPosition.y += y;
+                    mobileTransform.localPosition.x += movementX;
+                    mobileTransform.localPosition.y += movementY;
                 }
             }
         }

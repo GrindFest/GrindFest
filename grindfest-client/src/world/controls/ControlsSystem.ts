@@ -25,8 +25,8 @@ export default class ControlsSystem extends GameSystem {
         super();
         this.registerNodeJunction4(this.mobiles, Controllable, Mobile, Transform, PowerUser);
 
-        NetworkManager.registerHandler(MessageId.SMSG_GO_PLAY_ANIMATION, this.onActorPlayAnimation.bind(this));
-        NetworkManager.registerHandler(MessageId.SMSG_MOBILE_MOVE, this.onActorMove.bind(this));
+        NetworkManager.instance.registerHandler(MessageId.SMSG_GO_PLAY_ANIMATION, this.onActorPlayAnimation.bind(this));
+        NetworkManager.instance.registerHandler(MessageId.SMSG_MOBILE_MOVE, this.onActorMove.bind(this));
 
     }
 
@@ -98,7 +98,7 @@ export default class ControlsSystem extends GameSystem {
                 let direction = Math.atan2(ControllerManager.controller2Stick1Direction[1],  ControllerManager.controller2Stick1Direction[0]);
 
                 // should this be in power system?
-                NetworkManager.send({
+                NetworkManager.instance.send({
                     id: MessageId.CMSG_POWER_USE,
                     powerTag: usedPower,
                     targetDirection: direction
@@ -175,7 +175,7 @@ export default class ControlsSystem extends GameSystem {
 
 
         if (controllable.isLocal) {
-            NetworkManager.send({
+            NetworkManager.instance.send({
                 id: MessageId.CMSG_MOVE_REQUEST,
                 movement: velocity,
                 expectedPosition: transform.localPosition
@@ -205,7 +205,7 @@ export default class ControlsSystem extends GameSystem {
         let noMovement = {x: 0, y: 0};
 
         if (controllable.isLocal) {
-            NetworkManager.send({
+            NetworkManager.instance.send({
                 id: MessageId.CMSG_MOVE_REQUEST,
                 movement: noMovement,
                 expectedPosition: transform.localPosition

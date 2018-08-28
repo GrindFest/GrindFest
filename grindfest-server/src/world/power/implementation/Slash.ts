@@ -12,7 +12,7 @@ abstract class PowerImplementation implements StateGenerator<PowerUser> {
     //TODO: there might be some useful methods for implementing skills
 }
 
-abstract class ComboSkill extends PowerImplementation {
+export abstract class ComboSkill extends PowerImplementation {
 
 }
 
@@ -33,7 +33,7 @@ export default class Slash extends ComboSkill { //TODO: implement combo skill, t
         console.log("slash dir", targetDirection);
         let attack = new AttackPayload(powerUser.getPowerAttribute(PowerTag.Slash, PowerAttribute.Damage));
 
-        attack.addTargets(powerUser.findEnemiesInArcDirection(0, -16, targetDirection, powerUser.getPowerAttribute(PowerTag.Slash, PowerAttribute.SlashArc1Length), powerUser.getPowerAttribute(PowerTag.Slash, PowerAttribute.Range)));
+        attack.addTargets(powerUser.findEnemiesInArcDirection("hit", 0, -16, targetDirection, powerUser.getPowerAttribute(PowerTag.Slash, PowerAttribute.SlashArc1Length), powerUser.getPowerAttribute(PowerTag.Slash, PowerAttribute.Range)));
 
         powerUser.sendMessage(attack); //TODO: extract damage and duration from skill definition, it needs to be there so player will see correct tooltips
 
@@ -42,6 +42,9 @@ export default class Slash extends ComboSkill { //TODO: implement combo skill, t
         //TODO: sendMessage could be also on component delegating it to gameObject
     }
 
+    start() {
+
+    }
 }
 
 

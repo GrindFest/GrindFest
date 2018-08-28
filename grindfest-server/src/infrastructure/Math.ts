@@ -1,18 +1,46 @@
-export function arcCircleCollides(arcCenter: Vector2, arcDirection: Vector2, arcRadius: number, arcLength: number, circleCenter: Vector2, circleRadius: number): boolean {
-    let arcDelta = subtract(arcDirection, arcCenter);
+import {Arc, Circle, Rectangle} from "./definitions/SpriteSheetDefinition";
 
-    let circleDelta = subtract(circleCenter, arcCenter);
+export function pointRectangleCollides(point: Vector2, rectangle: Rectangle) {
+    return point.x > rectangle.topLeft.x && point.x < rectangle.topLeft.x + rectangle.width &&
+        point.y > rectangle.topLeft.y && point.y < rectangle.topLeft.y + rectangle.height;
+}
+
+export function rectangleCircleCollides(rectangle: Rectangle, circle: Circle): boolean {
+    let rectangleCenterX = rectangle.topLeft.x + rectangle.width / 2;
+    let rectangleCenterY = rectangle.topLeft.y + rectangle.height / 2;
+    let sqDistanceBetweenCenters = Math.sqrt(distance({
+        x: rectangleCenterX,
+        y: rectangleCenterY
+    }, circle.center));
+
+
+
+
+    let outerRadius = Math.sqrt(rectangle.width * rectangle.width + rectangle.height * rectangle.height);
+    if (sqDistanceBetweenCenters > Math.sqrt(outerRadius + circle.radius)) return false;
+
+    let innerRadius = rectangle.width > rectangle.height ? rectangle.width / 2 : rectangle.height / 2;
+    if (sqDistanceBetweenCenters < Math.sqrt(innerRadius + circle.radius)) return true;
+
+    let c1c2Vect = normalize((subtract(circle.center, {x: rectangleCenterX, y: rectangleCenterY})));
+    let outerPoint = add(circle.center, multiply(c1c2Vect, circle.radius));
+    return pointRectangleCollides(outerPoint, rectangle);
+}
+
+export function arcRectangleCollides(arc: Arc, rectangle: Rectangle): boolean {
+  //???
+    return false;
+}
+
+export function arcCircleCollides(arc:Arc, circle: Circle): boolean {
+    let arcDelta = subtract(arc.direction, arc.center);
+
+    let circleDelta = subtract(circle.center, arc.center);
     if (arcDelta.x == circleDelta.x && arcDelta.y == circleDelta.y)
         return true;
 
-    let a = angle(arcDelta, circleDelta);
-    console.log(arcDirection.x, arcDirection.y);
-    console.log(arcCenter.x, arcCenter.y);
-    console.log(arcDelta.x, arcDelta.y);
-    console.log(circleDelta.x, circleDelta.y);
-    console.log(a, arcLength / 2, distance(arcCenter, circleCenter), arcRadius);
-    if (a < arcLength / 2)
-        return distance(arcCenter, circleCenter) <= arcRadius + circleRadius;
+    if (angle(arcDelta, circleDelta) < arc.length / 2)
+        return distance(arc.center, circle.center) <= arc.radius + circle.radius;
     else
         return false;
 }
@@ -32,6 +60,17 @@ export function subtract(v1: Vector2, v2: Vector2) {
     }
 }
 
+export function add(v1: Vector2, v2: Vector2) {
+    return {
+        x: v1.x + v2.x,
+        y: v1.y + v2.y,
+    }
+}
+
+export function interpolate(v1: Vector2, v2: Vector2, value: number) {
+    return add(v1, multiply(subtract(v2, v1), value));
+}
+
 export function clamp(value: number, min: number, max: number) {
     return Math.max(min, Math.min(max, value));
 }
@@ -43,6 +82,7 @@ export function randomRange(min: number, max: number) {
 export function multiply(v: Vector2, a: number) {
     return {x: v.x * a, y: v.y * a};
 }
+
 
 export function length(v: Vector2) {
     return Math.sqrt(v.x * v.x + v.y * v.y);

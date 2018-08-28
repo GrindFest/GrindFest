@@ -4,7 +4,7 @@ import {
     ClientGameReady,
     ClientLoginRequest,
     LoginStatus,
-    MessageId,
+    MessageId, ServerEnterZone,
     ServerLoginResponse
 } from "./infrastructure/network/Messages";
 import GameObject from "./infrastructure/world/GameObject";
@@ -42,14 +42,25 @@ export default class LoginManager {
         if (client.heroes.length === 0) {
             let hero: HeroDefinition = {
                 name: "Guest " + Math.round(Math.random() * 100),
-                zoneTag: "zone/test",
-                x: Math.round(Math.random() * 2) * 16,
-                y: Math.round(Math.random() * 2) * 16,
+                zoneTag: "zones/test.json",
+                x: 7 * 16 + 8,
+                y: 3 * 16 + 8,
                 kills:0,
                 deaths:0,
             };
             client.heroes.push(hero);
         }
+
+
+        //TODO: here might be some select hero packet
+        client.selectedHero = client.heroes[0];
+
+
+
+        NetworkManager.send(client, {
+            id: MessageId.SMSG_ENTER_ZONE,
+            zoneTag: client.selectedHero.zoneTag
+        } as ServerEnterZone);
     };
 
 

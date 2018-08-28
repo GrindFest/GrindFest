@@ -33,7 +33,8 @@ export class CombatSystem extends GameSystem {
         this.zone.gameObjects.remove(gameObject);
 
         //TODO: debug only, spawn new golem
-        this.zone.gameObjects.push(GameObjectDatabase.createGameObject("golem", {zoneId: 1, x: 3*16, y:3*16}));
+        //TODO: create spawner?
+        this.zone.gameObjects.push(GameObjectDatabase.instance.createGameObject("golem", {zoneId: 1, x: 3*16, y:3*16}));
     }
 
     onDamage(gameObject: GameObject, payload: DamagePayload) {
